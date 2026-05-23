@@ -97,6 +97,7 @@ const JOB_CARD_SELECT = `
   company_name,
   company_email,
   interview_contact_number,
+  interview_contact_name,
   created_at,
   industry,
   skills,
@@ -166,6 +167,7 @@ const mapJobRowToCard = (job: {
   company_name: string;
   company_email: string;
   interview_contact_number: string | null;
+  interview_contact_name: string | null;
   created_at: string;
   industry: string | null;
   skills: string[] | null;
@@ -195,6 +197,7 @@ const mapJobRowToCard = (job: {
   companyName: job.company_name,
   companyEmail: job.company_email,
   interviewContact: job.interview_contact_number || "",
+  interviewContactName: job.interview_contact_name || "",
   postedAt: formatDate(job.created_at),
   industry: job.industry || "General",
   skills: job.skills || [],

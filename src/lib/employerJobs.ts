@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { getJobApprovalConfig } from "@/lib/settings";
 
 export interface EmployerJobSubmissionInput {
   companyName: string;
@@ -73,6 +74,9 @@ export const submitEmployerJob = async (
   const salaryMax = parseSalary(input.salaryMax);
   const jobTimeText = `${input.jobTime.trim()} - ${input.jobTimingDetails.trim()}`;
 
+  const config = await getJobApprovalConfig();
+  const initialStatus = config.required ? "pending" : "approved";
+
   const { data: jobRow, error: jobError } = await supabase
     .from("job_posts")
     .insert({
@@ -93,7 +97,7 @@ export const submitEmployerJob = async (
       interview_contact_name: input.interviewName.trim() || null,
       interview_contact_number: input.interviewContact.trim(),
       company_email: input.companyEmail.trim().toLowerCase(),
-      status: "pending",
+      status: initialStatus,
     })
     .select("id, position, company_name, location, company_email")
     .single();
@@ -103,13 +107,16 @@ export const submitEmployerJob = async (
   }
 
   const { error: notificationError } = await supabase.from("notifications").insert({
-    title: `New employer job submission: ${jobRow.position}`,
+    title: config.required 
+      ? `New employer job submission: ${jobRow.position}`
+      : `New employer job post (Directly Published): ${jobRow.position}`,
     body: [
       `Company: ${jobRow.company_name}`,
       `Position: ${jobRow.position}`,
       `Location: ${jobRow.location}`,
       `Employer Email: ${jobRow.company_email}`,
       `Job ID: ${jobRow.id}`,
+      `Status: ${initialStatus === "approved" ? "Approved (Direct Publish)" : "Pending Admin Review"}`,
     ].join("\n"),
     notification_type: "employer_job_submission",
     created_by: null,
@@ -129,8 +136,9 @@ export const submitEmployerJob = async (
       employerName: input.interviewName.trim() || "Employer",
       jobPosition: input.position.trim(),
       companyName: input.companyName.trim(),
-      emailType: "submitted",
+      emailType: config.required ? "submitted" : "approved",
       jobId: jobRow.id,
+      jobLink: config.required ? undefined : `${window.location.origin}/jobs/${jobRow.id}`,
       jobDetails: {
         vacancy: input.vacancy || "1",
         gender: input.gender || "Any",

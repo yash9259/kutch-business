@@ -499,7 +499,20 @@ using (public.is_admin(auth.uid()) or auth.uid() = created_by);
 
 create policy "job_posts_insert_anon" on public.job_posts
 for insert to anon
-with check (created_by is null and status = 'pending');
+with check (
+  created_by is null 
+  and (
+    status = 'pending'
+    or (
+      status = 'approved'
+      and exists (
+        select 1 from public.site_settings 
+        where setting_key = 'job_approval_config' 
+        and (setting_value->>'required')::boolean = false
+      )
+    )
+  )
+);
 
 create policy "job_posts_insert_authenticated" on public.job_posts
 for insert to authenticated
@@ -560,6 +573,10 @@ with check (public.is_admin(auth.uid()));
 create policy "site_settings_admin_only" on public.site_settings
 for all using (public.is_admin(auth.uid()))
 with check (public.is_admin(auth.uid()));
+
+create policy "site_settings_select_public" on public.site_settings
+for select to anon, authenticated
+using (true);
 
 insert into public.subscription_plans (slug, name, plan_type, amount, billing_label, description, features)
 values
@@ -724,7 +741,8 @@ insert into public.site_settings (setting_key, setting_value)
 values
   ('payment_config', jsonb_build_object('upi_id', '', 'merchant_name', 'kutchh business', 'notes', 'Set live UPI details before production')),
   ('email_config', jsonb_build_object('smtp_host', '', 'smtp_port', '', 'sender_email', '')),
-  ('website_config', jsonb_build_object('site_name', 'kutchh business', 'support_contact', '8780254591', 'support_email', 'suppoert@kutchbusiness.com'))
+  ('website_config', jsonb_build_object('site_name', 'kutchh business', 'support_contact', '8780254591', 'support_email', 'suppoert@kutchbusiness.com')),
+  ('job_approval_config', '{"required": true}'::jsonb)
 on conflict (setting_key) do nothing;
 
 grant select, insert, update, delete on all tables in schema public to authenticated;

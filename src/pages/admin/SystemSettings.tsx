@@ -7,10 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { usePaymentSystem } from "@/hooks/use-payment-system";
 import { setPaymentSystemEnabled } from "@/lib/paymentSystem";
+import { useJobApprovalConfig } from "@/hooks/use-job-approval-config";
+import { setJobApprovalConfig } from "@/lib/settings";
 
 const SystemSettings = () => {
   const { isEnabled: isPaymentEnabled, isLoading, refresh } = usePaymentSystem();
   const [isSavingPaymentSetting, setIsSavingPaymentSetting] = useState(false);
+
+  const { required: isApprovalRequired, isLoading: isConfigLoading, refresh: refreshConfig } = useJobApprovalConfig();
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
 
   const handlePaymentToggle = async (nextValue: boolean) => {
     try {
@@ -22,6 +27,19 @@ const SystemSettings = () => {
       toast.error(error instanceof Error ? error.message : "Unable to update payment setting");
     } finally {
       setIsSavingPaymentSetting(false);
+    }
+  };
+
+  const handleApprovalToggle = async (nextValue: boolean) => {
+    try {
+      setIsSavingConfig(true);
+      await setJobApprovalConfig(nextValue);
+      await refreshConfig();
+      toast.success(`Job approval setting ${nextValue ? "enabled" : "disabled"}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update approval setting");
+    } finally {
+      setIsSavingConfig(false);
     }
   };
 
@@ -89,6 +107,35 @@ const SystemSettings = () => {
             </div>
             <p className="text-xs text-muted-foreground">
               Current status: {isPaymentEnabled ? "ON" : "OFF"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Job Post Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg border border-border p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Require Admin Approval</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    When ON: job posts require admin approval and contact details are hidden from candidates.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    When OFF: job posts are published directly and contact details are shown.
+                  </p>
+                </div>
+                <Switch
+                  checked={isApprovalRequired}
+                  disabled={isConfigLoading || isSavingConfig}
+                  onCheckedChange={(checked) => void handleApprovalToggle(checked)}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Current status: {isApprovalRequired ? "ON (Approval Required & Private)" : "OFF (Direct Post & Public Details)"}
             </p>
           </CardContent>
         </Card>

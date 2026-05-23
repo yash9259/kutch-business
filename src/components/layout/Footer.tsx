@@ -55,17 +55,7 @@ const Footer = () => (
               </a>
             </p>
 
-            <p className="text-sm text-muted-foreground">
-              Address:{" "}
-              <a
-                href="https://www.google.com/maps?q=Shop+4,+Harikrishna+Plaza,+Raghuvanshi+Rd,+near+Sarah's+Academy,+Char+Raasta,+Ravalvadi,+Bhuj,+Gujarat+370001"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-foreground transition-colors"
-              >
-                Shop 4, Harikrishna Plaza, Bhuj, Gujarat 370001
-              </a>
-            </p>
+
 
             <div className="flex items-center gap-4 pt-1">
               <a

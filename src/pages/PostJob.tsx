@@ -15,8 +15,10 @@ import {
 import { toast } from "sonner";
 import { CheckCircle2, Building2, Briefcase, MapPin, Phone, FileText } from "lucide-react";
 import { submitEmployerJob } from "@/lib/employerJobs";
+import { useJobApprovalConfig } from "@/hooks/use-job-approval-config";
 
 const PostJob = () => {
+  const { required: isApprovalRequired } = useJobApprovalConfig();
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
@@ -99,9 +101,15 @@ const PostJob = () => {
       });
       setSubmitted(true);
       if (result.emailSent) {
-        toast.success("Job submitted! Confirmation email sent to " + form.companyEmail);
+        toast.success(isApprovalRequired
+          ? "Job submitted! Confirmation email sent to " + form.companyEmail
+          : "Job published! Confirmation email sent to " + form.companyEmail
+        );
       } else {
-        toast.success("Job submitted and saved.");
+        toast.success(isApprovalRequired
+          ? "Job submitted and saved."
+          : "Job published and live."
+        );
         if (result.emailError) {
           toast.warning("Email not sent: " + result.emailError);
         }
@@ -124,10 +132,12 @@ const PostJob = () => {
           >
             <CheckCircle2 className="h-14 w-14 text-primary mx-auto mb-4" />
             <h1 className="text-xl font-bold text-foreground mb-2">
-              Submission Received
+              {isApprovalRequired ? "Submission Received" : "Job Posted Successfully!"}
             </h1>
             <p className="text-sm text-muted-foreground mb-6">
-              Your job listing has been submitted for admin review, saved in the database, and added to the admin notification queue.
+              {isApprovalRequired 
+                ? "Your job listing has been submitted for admin review, saved in the database, and added to the admin notification queue."
+                : "Your job listing has been successfully published and is now live on our platform for all candidates to see."}
             </p>
             <Button variant="outline" onClick={() => setSubmitted(false)}>
               Post Another Job

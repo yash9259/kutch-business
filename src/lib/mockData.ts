@@ -13,6 +13,7 @@ export interface Job {
   companyName: string;
   companyEmail: string;
   interviewContact: string;
+  interviewContactName?: string;
   postedAt: string;
   industry: string;
   skills: string[];
