@@ -198,7 +198,7 @@ const PaymentsManagement = () => {
         <body>
           <div class="card">
             <h1>Invoice ${invoiceNo}</h1>
-            <p class="muted">kutchh business</p>
+            <p class="muted">kutch business</p>
             <p class="muted">Issued On: ${issuedAt}</p>
             <table>
               <tr><td class="key">Payment ID</td><td>${row.id}</td></tr>

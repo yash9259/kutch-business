@@ -9,10 +9,10 @@ const Footer = () => (
           <div className="flex items-center gap-2.5 mb-3">
             <img
               src="/logo.png"
-              alt="kutchh business"
+              alt="kutch business"
               className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg object-cover"
             />
-            <span className="text-base font-bold text-foreground">kutchh business</span>
+            <span className="text-base font-bold text-foreground">kutch business</span>
           </div>
           <p className="text-sm text-muted-foreground max-w-xs">
             Helping people connect with trusted local opportunities.
@@ -93,7 +93,7 @@ const Footer = () => (
         </div>
       </div>
       <div className="mt-10 pt-6 border-t border-border text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} kutchh business. All rights reserved.
+        © {new Date().getFullYear()} kutch business. All rights reserved.
       </div>
     </div>
   </footer>

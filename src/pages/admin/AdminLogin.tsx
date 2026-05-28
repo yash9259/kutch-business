@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState("admin@kutchhbusiness.com");
+  const [email, setEmail] = useState("admin@kutchbusiness.com");
   const [password, setPassword] = useState("admin123");
   const [loading, setLoading] = useState(false);
   const { login, user } = useAuth();

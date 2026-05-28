@@ -64,7 +64,7 @@ const AdminLayout = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate">{user?.fullName || "Admin User"}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email || "admin@kutchhbusiness.com"}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email || "admin@kutchbusiness.com"}</p>
               </div>
             </div>
           </div>

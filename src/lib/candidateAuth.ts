@@ -67,7 +67,7 @@ type StoredRegisterPayload = Omit<RegisterPayload, "resumeFile" | "signatureFile
 
 const SESSION_KEY = "lcc_admin_session_v1";
 const PENDING_REGISTRATION_KEY = "lcc_pending_candidate_registration_v1";
-const ADMIN_EMAIL = "admin@kutchhbusiness.com";
+const ADMIN_EMAIL = "admin@kutchbusiness.com";
 const ADMIN_PASSWORD = "admin123";
 
 const safeRead = <T,>(key: string, fallback: T): T => {

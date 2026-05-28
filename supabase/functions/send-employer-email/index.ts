@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "suppoert@kutchbusiness.com";
-const SENDER_NAME = Deno.env.get("SENDER_NAME") || "kutchh business";
+const SENDER_NAME = Deno.env.get("SENDER_NAME") || "kutch business";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -312,7 +312,7 @@ const candidateEmailTemplate = (data: CandidateApplicationEmailPayload) => ({
 });
 
 const candidateInvoiceTemplate = (data: CandidateInvoiceEmailPayload) => ({
-  subject: `Payment Invoice ${data.invoiceNo} - kutchh business`,
+  subject: `Payment Invoice ${data.invoiceNo} - kutch business`,
   html: `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f8fafc; margin: 0; padding: 24px; color: #1e293b;">
       <div style="max-width: 700px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden;">

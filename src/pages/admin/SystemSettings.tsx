@@ -147,7 +147,7 @@ const SystemSettings = () => {
           <CardContent className="space-y-3">
             <div>
               <Label>Site Name</Label>
-              <Input className="mt-1.5" defaultValue="kutchh business" />
+              <Input className="mt-1.5" defaultValue="kutch business" />
             </div>
             <div>
               <Label>Support Contact</Label>

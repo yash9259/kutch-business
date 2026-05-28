@@ -33,11 +33,11 @@ const Header = () => {
         <Link to="/" className="flex items-center gap-2.5">
           <img
             src="/logo.png"
-            alt="kutchh business"
+            alt="kutch business"
             className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg object-cover"
           />
           <span className="text-lg font-bold text-foreground tracking-tight">
-            kutchh business
+            kutch business
           </span>
         </Link>
 

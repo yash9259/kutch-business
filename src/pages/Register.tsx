@@ -740,7 +740,7 @@ const Register = () => {
 
           <div className="overflow-y-auto pr-3 sm:pr-4 space-y-4 text-sm text-muted-foreground flex-1">
             <div>
-              <h3 className="text-base font-semibold text-foreground mb-2">kutchh business Terms & Conditions</h3>
+              <h3 className="text-base font-semibold text-foreground mb-2">kutch business Terms & Conditions</h3>
               <ol className="list-decimal pl-5 space-y-2">
                 <li>We can arrange interviews for jobs but cannot guarantee final selection.</li>
                 <li>Registration is for the submitted candidate only and cannot be transferred.</li>

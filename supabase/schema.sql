@@ -739,9 +739,9 @@ using (
 
 insert into public.site_settings (setting_key, setting_value)
 values
-  ('payment_config', jsonb_build_object('upi_id', '', 'merchant_name', 'kutchh business', 'notes', 'Set live UPI details before production')),
+  ('payment_config', jsonb_build_object('upi_id', '', 'merchant_name', 'kutch business', 'notes', 'Set live UPI details before production')),
   ('email_config', jsonb_build_object('smtp_host', '', 'smtp_port', '', 'sender_email', '')),
-  ('website_config', jsonb_build_object('site_name', 'kutchh business', 'support_contact', '8780254591', 'support_email', 'suppoert@kutchbusiness.com')),
+  ('website_config', jsonb_build_object('site_name', 'kutch business', 'support_contact', '8780254591', 'support_email', 'suppoert@kutchbusiness.com')),
   ('job_approval_config', '{"required": true}'::jsonb)
 on conflict (setting_key) do nothing;
 
