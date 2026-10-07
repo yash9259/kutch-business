@@ -12,6 +12,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { usePaymentSystem } from "@/hooks/use-payment-system";
 import { checkCandidatePaymentVerified } from "@/lib/candidateDashboard";
+import Seo from "@/components/seo/Seo";
+import FaqSection from "@/components/seo/FaqSection";
+import { JOBS_FAQS } from "@/lib/siteConfig";
+import { breadcrumbJsonLd, faqJsonLd, jobListJsonLd } from "@/lib/structuredData";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -79,6 +83,16 @@ const Jobs = () => {
 
   return (
     <Layout>
+      <Seo
+        title="Browse Jobs in Kutch, Gujarat - Latest Openings"
+        description="Browse the latest verified job openings in Kutch, Gujarat. Filter by city and experience and find jobs in Bhuj, Gandhidham, Anjar, Mundra and more."
+        path="/jobs"
+        jsonLd={[
+          breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Jobs", path: "/jobs" }]),
+          jobListJsonLd("Latest jobs in Kutch", jobs),
+          faqJsonLd(JOBS_FAQS),
+        ]}
+      />
       {/* Mesh Banner Header */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 border-b border-border/80 py-16 sm:py-20">
         {/* Glow ambient orbs */}
@@ -181,6 +195,7 @@ const Jobs = () => {
           </div>
         )}
       </div>
+      <FaqSection faqs={JOBS_FAQS} />
     </Layout>
   );
 };

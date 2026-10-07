@@ -1,126 +1,68 @@
-# Welcome to your Lovable project
+# Kutch Business - one repo, web + Android
 
-## Project info
-
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+kutch-business/
+├── src/, public/, index.html ...   Web app (React + Vite + Supabase) - deploys to Vercel
+├── scripts/generate-seo.mjs        Post-build SEO: static pages, JSON-LD, sitemap.xml
+├── supabase/                       schema.sql, edge functions (email + WhatsApp alert)
+├── android/                        Android WebView app (loads https://www.kutchbusiness.com/)
+└── .github/workflows/android.yml   Builds signed APK + AAB when android/** changes
 ```
 
-**Edit a file directly in GitHub**
+The Android app is a WebView wrapper around the live website, so **every web/SEO change shows up in the
+app automatically** - no app release needed.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Web
 
-**Use GitHub Codespaces**
+```sh
+npm i
+npm run dev        # http://localhost:8080
+npm run build      # vite build + SEO prerender + sitemap (dist/)
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Vercel: keep the project root at the repo root (build command `npm run build`, output `dist`).
 
-## What technologies are used for this project?
+## Android
 
-This project is built with:
+Build happens in GitHub Actions (`Android - build release APK and AAB`) - download the APK/AAB from the run's
+artifacts. Locally: open the `android/` folder in Android Studio. Add `KEYSTORE_BASE64` and `KEYSTORE_PASSWORD`
+repo secrets for a permanent signing key (otherwise a temporary key is generated each run).
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## SEO / AEO / AIO
 
-## How can I deploy this project?
+| Layer | What | Where |
+|---|---|---|
+| SEO | Unique title/description/canonical/OG per page; `JobPosting`, `BreadcrumbList`, `ItemList`, `Organization`, `WebSite` JSON-LD | `src/components/seo/Seo.tsx`, `src/lib/structuredData.ts` |
+| SEO | City landing pages `/jobs-in/<city>` (Bhuj, Gandhidham, Anjar, Mundra, Mandvi, Bhachau, Adipur, Rapar) | `src/pages/CityJobs.tsx`, `src/lib/siteConfig.ts` |
+| SEO | Static prerendered HTML for `/`, `/jobs`, `/post-job`, `/register`, city pages and **every approved job**, plus `sitemap.xml` | `scripts/generate-seo.mjs` (runs on every build) |
+| AEO | Visible FAQ sections + `FAQPage` JSON-LD (home, jobs, post-job, city pages) | `FaqSection.tsx`, `siteConfig.ts` |
+| AIO | `robots.txt` welcoming GPTBot / ClaudeBot / PerplexityBot etc., `llms.txt`, server-visible content for non-JS bots | `public/` |
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Admin, dashboard, login and reset pages are `noindex` and blocked in `robots.txt`.
 
-## Can I connect a custom domain to my Lovable project?
+**Keeping the sitemap/job pages fresh:** they are generated at build time, so new jobs appear after the next
+deploy. In Vercel create a *Deploy Hook* and call it on a schedule (e.g. every 6 hours from cron-job.org or a
+Supabase scheduled function) - or after each approval.
 
-Yes, you can!
+After deploying: submit `https://www.kutchbusiness.com/sitemap.xml` in Google Search Console and Bing Webmaster
+Tools, then test a job URL with Google's Rich Results Test.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## WhatsApp job details (878 025 4591)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+**Works out of the box - no WhatsApp API needed.** As soon as an employer posts a job, WhatsApp opens (app on
+mobile, WhatsApp Web on desktop) with a chat to `918780254591` and **all job details pre-filled** (position,
+company, vacancies, gender, experience, qualification, salary, timing, location, interview contact, company email,
+responsibilities, job ID). The employer taps **Send**. If the browser blocks the pop-up, the success screen shows
+an "Open WhatsApp & send job details" button with the same message. Inside the Android app the link opens the
+WhatsApp app.
 
-## Candidate Auth: Phase-Wise Backend Plan
+The message is built in `src/lib/whatsapp.ts`; the number is `SITE.whatsappNumber` in `src/lib/siteConfig.ts`.
 
-This project now includes a Phase-1 candidate auth backend simulation in the frontend (localStorage + route guards) so you can test login/register immediately.
+### Optional: fully automatic alerts (needs Meta WhatsApp Business API)
+The edge function `supabase/functions/notify-whatsapp-new-job` can send the alert with no employer action. If you
+later get API access: run `supabase/whatsapp_notify.sql`, deploy the function and set `WHATSAPP_TOKEN`,
+`WHATSAPP_PHONE_NUMBER_ID` (and ideally `WHATSAPP_TEMPLATE_NAME`). Until then it safely does nothing and the
+pre-filled chat above is used.
 
-### Phase 1 (Implemented now): Local backend simulation
-
-- Candidate register saves user data in `localStorage`.
-- Candidate login checks saved credentials and creates a session token.
-- Admin login is supported with:
-	- Email: `admin@hkjobs.com`
-	- Password: `admin123`
-- Protected routes:
-	- Candidate routes: `/dashboard/*`
-	- Admin route: `/admin`
-
-### Phase 2: Real Auth API (Node/Express + PostgreSQL)
-
-- Create APIs:
-	- `POST /api/auth/register-candidate`
-	- `POST /api/auth/login`
-	- `POST /api/auth/logout`
-	- `GET /api/auth/me`
-- Replace localStorage user store with DB tables:
-	- `users`
-	- `candidate_profiles`
-	- `sessions` (optional when using refresh tokens)
-- Use password hashing (`bcrypt`) and JWT access/refresh tokens.
-
-### Phase 3: Candidate Profile Domain APIs
-
-- Create candidate CRUD APIs:
-	- `GET /api/candidate/profile`
-	- `PUT /api/candidate/profile`
-	- `POST /api/candidate/resume`
-	- `PUT /api/candidate/education`
-	- `PUT /api/candidate/experience`
-	- `PUT /api/candidate/references`
-- Move registration flow fields into normalized profile tables.
-
-### Phase 4: Security + Verification
-
-- Add email verification OTP.
-- Add password reset flow.
-- Add login throttling and account lock policy.
-- Add audit logs for auth and profile updates.
-
-### Phase 5: Production Hardening
-
-- Add API validation (Zod/class-validator) and centralized error handling.
-- Add observability (request logs + metrics).
-- Add integration tests for auth and profile routes.
-- Add CI checks for lint, tests, and migrations.
+## Other setup docs
+`EMAIL_SETUP.md`, `RESEND_SETUP.md` (employer emails), `supabase/README.md`.

@@ -17,6 +17,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePaymentSystem } from "@/hooks/use-payment-system";
 import { checkCandidatePaymentVerified } from "@/lib/candidateDashboard";
 import { useJobApprovalConfig } from "@/hooks/use-job-approval-config";
+import Seo from "@/components/seo/Seo";
+import { jobPostingJsonLd, breadcrumbJsonLd } from "@/lib/structuredData";
 
 const JobDetail = () => {
   const navigate = useNavigate();
@@ -81,6 +83,7 @@ const JobDetail = () => {
   if (!job) {
     return (
       <Layout>
+        <Seo title="Job not found" description="This job listing is no longer available." noindex />
         <div className="container py-24 text-center max-w-sm">
           <AlertCircle className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-foreground mb-2">Opportunity not found</h1>
@@ -131,6 +134,20 @@ const JobDetail = () => {
 
   return (
     <Layout>
+      <Seo
+        title={`${job.position} at ${job.companyName} - ${job.location}`}
+        description={`${job.companyName} is hiring a ${job.position} in ${job.location}. Salary: ${job.salaryRange}. Experience: ${job.experience}. Vacancies: ${job.vacancy}. Apply on Kutch Business.`}
+        path={`/jobs/${job.id}`}
+        type="article"
+        jsonLd={[
+          jobPostingJsonLd(job),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Jobs", path: "/jobs" },
+            { name: job.position, path: `/jobs/${job.id}` },
+          ]),
+        ]}
+      />
       {/* Sub-header navigation */}
       <div className="bg-surface border-b border-border/80">
         <div className="container py-4">

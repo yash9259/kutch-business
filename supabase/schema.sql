@@ -246,6 +246,7 @@ create table if not exists public.job_posts (
   approved_by uuid references public.profiles(id) on delete set null,
   approved_at timestamptz,
   rejected_reason text,
+  whatsapp_notified_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

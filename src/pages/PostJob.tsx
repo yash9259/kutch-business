@@ -16,11 +16,16 @@ import { toast } from "sonner";
 import { CheckCircle2, Building2, Briefcase, MapPin, Phone, FileText } from "lucide-react";
 import { submitEmployerJob } from "@/lib/employerJobs";
 import { useJobApprovalConfig } from "@/hooks/use-job-approval-config";
+import Seo from "@/components/seo/Seo";
+import FaqSection from "@/components/seo/FaqSection";
+import { POST_JOB_FAQS } from "@/lib/siteConfig";
+import { breadcrumbJsonLd, faqJsonLd } from "@/lib/structuredData";
 
 const PostJob = () => {
   const { required: isApprovalRequired } = useJobApprovalConfig();
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [whatsapp, setWhatsapp] = useState<{ sent: boolean; link: string } | null>(null);
   const [form, setForm] = useState({
     companyName: "", position: "", vacancy: "", gender: "",
     experience: "", qualification: "", salaryMin: "", salaryMax: "",
@@ -99,7 +104,13 @@ const PostJob = () => {
         companyEmail: form.companyEmail,
         responsibilities: form.responsibilities,
       });
+      setWhatsapp({ sent: result.whatsappSent, link: result.whatsappLink });
       setSubmitted(true);
+      // No WhatsApp API needed: open a chat to the Kutch Business number with every job detail pre-filled.
+      // If the browser blocks the pop-up, the success screen shows a button for the same link.
+      if (!result.whatsappSent) {
+        window.open(result.whatsappLink, "_blank", "noopener,noreferrer");
+      }
       if (result.emailSent) {
         toast.success(isApprovalRequired
           ? "Job submitted! Confirmation email sent to " + form.companyEmail
@@ -139,7 +150,19 @@ const PostJob = () => {
                 ? "Your job listing has been submitted for admin review, saved in the database, and added to the admin notification queue."
                 : "Your job listing has been successfully published and is now live on our platform for all candidates to see."}
             </p>
-            <Button variant="outline" onClick={() => setSubmitted(false)}>
+            {whatsapp && !whatsapp.sent && (
+              <div className="mb-4">
+                <Button asChild className="w-full">
+                  <a href={whatsapp.link} target="_blank" rel="noreferrer">
+                    Open WhatsApp &amp; send job details
+                  </a>
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  WhatsApp opens with all your job details filled in. Just tap Send to share them with our team.
+                </p>
+              </div>
+            )}
+            <Button variant="outline" onClick={() => { setSubmitted(false); setWhatsapp(null); }}>
               Post Another Job
             </Button>
           </motion.div>
@@ -150,6 +173,15 @@ const PostJob = () => {
 
   return (
     <Layout>
+      <Seo
+        title="Post a Job in Kutch - Hire Local Talent Fast"
+        description="Post your job vacancy on Kutch Business and reach job seekers in Bhuj, Gandhidham, Anjar, Mundra and across Kutch, Gujarat."
+        path="/post-job"
+        jsonLd={[
+          breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Post a Job", path: "/post-job" }]),
+          faqJsonLd(POST_JOB_FAQS),
+        ]}
+      />
       <div className="container py-10 sm:py-16 max-w-2xl">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
           Post a Job
@@ -387,6 +419,7 @@ const PostJob = () => {
           </div>
         </form>
       </div>
+      <FaqSection faqs={POST_JOB_FAQS} />
     </Layout>
   );
 };

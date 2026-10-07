@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-seo.mjs",
     "build:dev": "vite build --mode development",
+    "seo": "node scripts/generate-seo.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",

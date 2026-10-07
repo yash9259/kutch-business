@@ -9,6 +9,7 @@ import { Briefcase, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase";
+import Seo from "@/components/seo/Seo";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -74,6 +75,7 @@ const Login = () => {
 
   return (
     <Layout>
+      <Seo title="Login" description="Login on Kutch Business." noindex />
       <div className="container py-16 sm:py-24 max-w-md">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

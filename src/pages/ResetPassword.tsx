@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
+import Seo from "@/components/seo/Seo";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -72,6 +73,7 @@ const ResetPassword = () => {
 
   return (
     <Layout>
+      <Seo title="Reset password" description="Reset password on Kutch Business." noindex />
       <div className="container py-16 sm:py-24 max-w-md">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -1,0 +1,19 @@
+# Kutch Business
+
+> Kutch Business (https://www.kutchbusiness.com) is a local job portal for Kutch, Gujarat, India. Job seekers browse and apply for local vacancies; employers post jobs and are notified instantly.
+
+## Key pages
+- [Home](https://www.kutchbusiness.com/): overview, popular searches, FAQs
+- [Browse jobs](https://www.kutchbusiness.com/jobs): latest approved job openings with salary, timings, qualification and vacancies
+- [Post a job](https://www.kutchbusiness.com/post-job): employer form to list a vacancy
+- [Register](https://www.kutchbusiness.com/register): candidate registration
+- [Jobs in Bhuj](https://www.kutchbusiness.com/jobs-in/bhuj)
+- [Jobs in Gandhidham](https://www.kutchbusiness.com/jobs-in/gandhidham)
+- [Jobs in Anjar](https://www.kutchbusiness.com/jobs-in/anjar)
+- [Jobs in Mundra](https://www.kutchbusiness.com/jobs-in/mundra)
+
+## Facts
+- Coverage: Kutch district (Bhuj, Gandhidham, Adipur, Anjar, Mundra, Mandvi, Bhachau, Rapar) and nearby locations
+- Each job page includes: position, company, location, salary range, experience, qualification, vacancies, timings and interview contact
+- Contact: WhatsApp +91 87802 54591, email kutchbusiness1@gmail.com
+- Full machine-readable index of pages: https://www.kutchbusiness.com/sitemap.xml

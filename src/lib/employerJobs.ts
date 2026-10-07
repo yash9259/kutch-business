@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { getJobApprovalConfig } from "@/lib/settings";
+import { buildJobWhatsAppText, buildWhatsAppLink } from "@/lib/whatsapp";
 
 export interface EmployerJobSubmissionInput {
   companyName: string;
@@ -23,6 +24,10 @@ export interface EmployerJobSubmissionResult {
   jobId: string;
   emailSent: boolean;
   emailError: string | null;
+  /** true when the admin WhatsApp alert (878 025 4591) was delivered by the server. */
+  whatsappSent: boolean;
+  /** wa.me link with every job detail pre-filled, used as a one-tap fallback. */
+  whatsappLink: string;
 }
 
 const parseSalary = (value: string) => {
@@ -44,6 +49,29 @@ const formatSalaryText = (min: number | null, max: number | null) => {
   }
 
   return null;
+};
+
+// Triggers the server-side WhatsApp alert (edge function notify-whatsapp-new-job).
+// Never throws: a WhatsApp problem must not break job posting.
+const notifyAdminOnWhatsApp = async (jobId: string): Promise<boolean> => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notify-whatsapp-new-job`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ jobId }),
+      },
+    );
+    const data = await response.json().catch(() => ({}));
+    return Boolean(response.ok && data?.sent);
+  } catch (error) {
+    console.warn("WhatsApp alert failed:", error);
+    return false;
+  }
 };
 
 export const submitEmployerJob = async (
@@ -126,6 +154,9 @@ export const submitEmployerJob = async (
     throw new Error(notificationError.message);
   }
 
+  // Instant WhatsApp alert with all job details to the admin number (runs alongside the email below)
+  const whatsappPromise = notifyAdminOnWhatsApp(jobRow.id);
+
   // Send confirmation email to employer
   let emailSent = false;
   let emailError: string | null = null;
@@ -159,10 +190,33 @@ export const submitEmployerJob = async (
     console.error("Confirmation email error:", emailError);
   }
 
+  const whatsappSent = await whatsappPromise;
+  const whatsappLink = buildWhatsAppLink(
+    buildJobWhatsAppText({
+      jobId: jobRow.id,
+      status: initialStatus,
+      companyName: input.companyName.trim(),
+      position: input.position.trim(),
+      vacancy: String(vacancy),
+      gender: input.gender.trim(),
+      experience: input.experience.trim(),
+      qualification: input.qualification.trim(),
+      salary: formatSalaryText(salaryMin, salaryMax),
+      jobTime: jobTimeText,
+      location: input.location.trim(),
+      interviewName: input.interviewName.trim(),
+      interviewContact: input.interviewContact.trim(),
+      companyEmail: input.companyEmail.trim().toLowerCase(),
+      responsibilities: input.responsibilities.trim(),
+    }),
+  );
+
   return {
     jobId: jobRow.id,
     emailSent,
     emailError,
+    whatsappSent,
+    whatsappLink,
   };
 };
 
@@ -364,7 +418,7 @@ export const updateJobStatusWithEmail = async (jobId: string, newStatus: "approv
       emailType: newStatus === "approved" ? "approved" : "rejected",
       jobId,
       rejectionReason,
-      jobLink: newStatus === "approved" ? `https://lotus-career-connect.com/jobs/${jobId}` : undefined,
+      jobLink: newStatus === "approved" ? `https://www.kutchbusiness.com/jobs/${jobId}` : undefined,
     });
   } catch (emailError) {
     console.warn("Email sending failed (job status updated):", emailError);

@@ -199,6 +199,7 @@ const mapJobRowToCard = (job: {
   interviewContact: job.interview_contact_number || "",
   interviewContactName: job.interview_contact_name || "",
   postedAt: formatDate(job.created_at),
+  postedAtISO: job.created_at,
   industry: job.industry || "General",
   skills: job.skills || [],
   description: job.description || "",

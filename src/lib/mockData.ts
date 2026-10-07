@@ -15,6 +15,7 @@ export interface Job {
   interviewContact: string;
   interviewContactName?: string;
   postedAt: string;
+  postedAtISO?: string;
   industry: string;
   skills: string[];
   description: string;

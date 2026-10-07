@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import Seo from "@/components/seo/Seo";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -51,6 +52,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <Seo title="Account area" description="Private area." noindex />
       <div className="flex-1 flex">
         {/* Sidebar - desktop */}
         <aside className="hidden lg:flex w-64 border-r border-border bg-card flex-col shrink-0">

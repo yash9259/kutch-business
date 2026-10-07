@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import Seo from "@/components/seo/Seo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
@@ -55,6 +56,7 @@ const AdminLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <Seo title="Account area" description="Private area." noindex />
       <div className="flex-1 flex">
         <aside className="hidden lg:flex w-72 border-r border-border bg-card flex-col shrink-0">
           <div className="p-4 border-b border-border">

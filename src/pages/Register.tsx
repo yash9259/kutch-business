@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, ArrowRight, Upload, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import Seo from "@/components/seo/Seo";
 
 const steps = ["Personal Information", "Contact & Education", "Declaration"];
 
@@ -354,6 +355,7 @@ const Register = () => {
 
   return (
     <Layout>
+      <Seo title="Register as a Candidate - Get Hired in Kutch" description="Create your candidate profile on Kutch Business to apply for jobs in Bhuj, Gandhidham, Anjar, Mundra and across Kutch, Gujarat." path="/register" />
       <div className="container py-10 sm:py-16 max-w-2xl">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
           Candidate Registration

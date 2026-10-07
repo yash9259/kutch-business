@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="notification_settings"
+        android:enabled="true"
+        android:icon="@drawable/ic_stat_logo"
+        android:shortcutShortLabel="@string/shortcut_settings">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.kutchbusiness.app"
+            android:targetClass="com.kutchbusiness.app.SettingsActivity" />
+    </shortcut>
+</shortcuts>

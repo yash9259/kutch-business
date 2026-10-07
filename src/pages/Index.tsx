@@ -11,6 +11,10 @@ import { listRecentApprovedJobs } from "@/lib/candidateDashboard";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import Seo from "@/components/seo/Seo";
+import FaqSection from "@/components/seo/FaqSection";
+import { CITY_LANDINGS, HOME_FAQS, SITE } from "@/lib/siteConfig";
+import { faqJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/structuredData";
 
 const formatCount = (value: number) => value.toLocaleString("en-IN");
 
@@ -70,6 +74,12 @@ const Index = () => {
 
   return (
     <Layout>
+      <Seo
+        title="Jobs in Kutch, Gujarat - Find Jobs in Bhuj, Gandhidham, Anjar & Mundra"
+        description={SITE.description}
+        path="/"
+        jsonLd={[organizationJsonLd(), websiteJsonLd(), faqJsonLd(HOME_FAQS)]}
+      />
       {/* Hero Section */}
       <section className="relative border-b border-border/80 overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 py-24 sm:py-36">
         {/* Glow ambient orbs with dynamic animations */}
@@ -93,6 +103,7 @@ const Index = () => {
             </div>
 
             <h1 className="text-4xl sm:text-6xl font-black text-foreground leading-tight tracking-tighter">
+              <span className="sr-only">Jobs in Kutch, Gujarat: </span>
               <span className="font-light text-foreground/80 block sm:inline">Find your path.</span>{" "}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-red-500 to-primary">
                 Serve with purpose.
@@ -100,8 +111,8 @@ const Index = () => {
             </h1>
             
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed font-medium">
-              Connecting professional candidates with meaningful career opportunities. Browse jobs,
-              register your candidate profile, or post openings for your organization.
+              Kutch Business connects job seekers with trusted employers across Kutch, Gujarat. Browse jobs in Bhuj,
+              Gandhidham, Anjar and Mundra, register your candidate profile, or post openings for your organization.
             </p>
 
             {/* Double-Layered Glassmorphic Search Bar */}
@@ -261,6 +272,24 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      <section className="container py-12" aria-labelledby="jobs-by-city-heading">
+        <h2 id="jobs-by-city-heading" className="text-2xl font-bold text-foreground mb-2">Jobs in Kutch by city</h2>
+        <p className="text-sm text-muted-foreground mb-5">Explore openings near you across Kutch, Gujarat.</p>
+        <div className="flex flex-wrap gap-2">
+          {CITY_LANDINGS.map((city) => (
+            <Link
+              key={city.slug}
+              to={`/jobs-in/${city.slug}`}
+              className="inline-flex items-center rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-semibold text-foreground hover:border-primary/40 hover:text-primary transition-colors"
+            >
+              Jobs in {city.name}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <FaqSection faqs={HOME_FAQS} />
     </Layout>
   );
 };
