@@ -48,10 +48,10 @@ const Footer = () => (
             <p className="text-sm text-muted-foreground break-all">
               Email:{" "}
               <a
-                href="mailto:suppoert@kutchbusiness.com"
+                href="mailto:kutchbusiness1@gmail.com"
                 className="hover:text-foreground transition-colors"
               >
-                suppoert@kutchbusiness.com
+                kutchbusiness1@gmail.com
               </a>
             </p>
 
