@@ -6,7 +6,6 @@
 - [Home](https://www.kutchbusiness.com/): overview, popular searches, FAQs
 - [Browse jobs](https://www.kutchbusiness.com/jobs): latest approved job openings with salary, timings, qualification and vacancies
 - [Post a job](https://www.kutchbusiness.com/post-job): employer form to list a vacancy
-- [Register](https://www.kutchbusiness.com/register): candidate registration
 - [Jobs in Bhuj](https://www.kutchbusiness.com/jobs-in/bhuj)
 - [Jobs in Gandhidham](https://www.kutchbusiness.com/jobs-in/gandhidham)
 - [Jobs in Anjar](https://www.kutchbusiness.com/jobs-in/anjar)

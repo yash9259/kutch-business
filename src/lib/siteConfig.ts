@@ -1,6 +1,10 @@
 // Single source of truth for brand / contact / SEO constants.
 // Used by the React app AND mirrored in scripts/generate-seo.mjs (keep both in sync).
 
+// Candidate login / register / dashboard are hidden for now.
+// Set to true to bring them all back (links, pages and the one-tap apply for logged-in candidates).
+export const CANDIDATE_ACCOUNTS_ENABLED = false;
+
 export const SITE = {
   name: "Kutch Business",
   legalName: "Kutch Business",
@@ -60,7 +64,7 @@ export const HOME_FAQS: FaqItem[] = [
   },
   {
     q: "How do I find a job in Kutch on this website?",
-    a: "Open the Browse Jobs page, search by job title or filter by city, then open a listing to see the salary, timings, qualification, vacancy and interview contact. You can apply directly with just your name and mobile number, no account needed. Registering is optional and lets you track your applications.",
+    a: "Open the Browse Jobs page, search by job title or filter by city, then open a listing to see the salary, timings, qualification, vacancy and interview contact. You can apply directly with just your name and mobile number, no account needed.",
   },
   {
     q: "How can an employer post a job?",
@@ -95,7 +99,7 @@ export const JOBS_FAQS: FaqItem[] = [
   HOME_FAQS[4],
   {
     q: "Do I need an account to view jobs?",
-    a: "No. Anyone can browse job listings and apply directly with just a name and mobile number. Registering as a candidate is optional and only needed if you want to save jobs or track your applications.",
+    a: "No. Anyone can browse job listings and apply directly with just a name and mobile number. There is no registration or login for candidates.",
   },
   HOME_FAQS[5],
 ];

@@ -5,19 +5,23 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { CANDIDATE_ACCOUNTS_ENABLED } from "@/lib/siteConfig";
 
 const navLinks = [
   { to: "/", label: "Home" },
   { to: "/jobs", label: "Browse Jobs" },
   { to: "/post-job", label: "Post a Job" },
-  { to: "/register", label: "Register" },
+  ...(CANDIDATE_ACCOUNTS_ENABLED ? [{ to: "/register", label: "Register" }] : []),
 ];
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user: authUser, logout } = useAuth();
+  // With candidate accounts hidden, only an admin session shows account buttons.
+  const user = CANDIDATE_ACCOUNTS_ENABLED || authUser?.role === "admin" ? authUser : null;
+  const showGuestAuthButtons = CANDIDATE_ACCOUNTS_ENABLED;
 
   const handleLogout = () => {
     logout();
@@ -76,7 +80,7 @@ const Header = () => {
                 Logout
               </Button>
             </>
-          ) : (
+          ) : showGuestAuthButtons ? (
             <>
               <Link to="/login">
                 <Button variant="ghost" size="sm">
@@ -87,7 +91,7 @@ const Header = () => {
                 <Button size="sm">Get Started</Button>
               </Link>
             </>
-          )}
+          ) : null}
         </div>
 
         {/* Mobile toggle */}
@@ -139,7 +143,7 @@ const Header = () => {
                       Logout
                     </Button>
                   </>
-                ) : (
+                ) : showGuestAuthButtons ? (
                   <>
                     <Link to="/login" className="flex-1" onClick={() => setMobileOpen(false)}>
                       <Button variant="outline" className="w-full">Login</Button>
@@ -148,7 +152,7 @@ const Header = () => {
                       <Button className="w-full">Register</Button>
                     </Link>
                   </>
-                )}
+                ) : null}
               </div>
             </nav>
           </motion.div>

@@ -3,7 +3,7 @@
  *
  * 1. Fetches approved jobs from Supabase (REST, anon key, same data the public /jobs page uses).
  * 2. Writes static, crawlable HTML (title, meta, canonical, Open Graph, JSON-LD and readable
- *    content) for: /, /jobs, /post-job, /register, /jobs-in/<city> and /jobs/<id>.
+ *    content) for: /, /jobs, /post-job, /jobs-in/<city> and /jobs/<id>.
  *    The React app still mounts on top of it, so users see no difference, but crawlers that do
  *    NOT run JavaScript (most AI / answer-engine bots) get real content.
  * 3. Writes dist/sitemap.xml.
@@ -198,7 +198,7 @@ const jobListHtml = (jobs) =>
         .join("")}</ul>`
     : "<p>New openings appear here as soon as employers post them.</p>";
 
-const navHtml = `<nav><a href="/">Home</a> · <a href="/jobs">Browse jobs</a> · <a href="/post-job">Post a job</a> · <a href="/register">Register</a> · ${CITIES.map((c) => `<a href="/jobs-in/${c.slug}">Jobs in ${esc(c.name)}</a>`).join(" · ")}</nav>`;
+const navHtml = `<nav><a href="/">Home</a> · <a href="/jobs">Browse jobs</a> · <a href="/post-job">Post a job</a> · ${CITIES.map((c) => `<a href="/jobs-in/${c.slug}">Jobs in ${esc(c.name)}</a>`).join(" · ")}</nav>`;
 
 const faqHtml = (faqs) => `<section><h2>Frequently asked questions</h2>${faqs.map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join("")}</section>`;
 
@@ -276,14 +276,6 @@ const main = async () => {
     body: `<header>${navHtml}</header><main><h1>Post a job in Kutch</h1><p>Fill in your company, position, vacancies, salary, timings, location and interview contact. Our team is notified instantly.</p></main>`,
   }));
   add("/post-job", "0.8", "monthly");
-
-  await writePage("/register", renderPage(template, {
-    path: "/register",
-    title: "Register as a Candidate - Get Hired in Kutch",
-    description: "Create your candidate profile on Kutch Business to apply for jobs in Bhuj, Gandhidham, Anjar, Mundra and across Kutch, Gujarat.",
-    body: `<header>${navHtml}</header><main><h1>Register as a candidate</h1><p>Create your profile to apply for jobs across Kutch, Gujarat.</p></main>`,
-  }));
-  add("/register", "0.6", "monthly");
 
   // City landing pages
   for (const c of CITIES) {

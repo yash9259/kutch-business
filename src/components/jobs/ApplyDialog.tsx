@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { CANDIDATE_ACCOUNTS_ENABLED } from "@/lib/siteConfig";
 import { applyToJobAsGuest, normalizeIndianPhone } from "@/lib/candidateDashboard";
 
 export interface ApplyTarget {
@@ -192,9 +193,11 @@ const ApplyDialog = ({ job, onClose }: ApplyDialogProps) => {
             </div>
 
             <DialogFooter className="gap-2 sm:gap-2 sm:items-center">
-              <p className="text-xs text-muted-foreground sm:mr-auto">
-                Have an account? <Link to="/login" className="text-primary hover:underline">Log in</Link>
-              </p>
+              {CANDIDATE_ACCOUNTS_ENABLED && (
+                <p className="text-xs text-muted-foreground sm:mr-auto">
+                  Have an account? <Link to="/login" className="text-primary hover:underline">Log in</Link>
+                </p>
+              )}
               <Button variant="outline" onClick={close} disabled={isSubmitting}>Cancel</Button>
               <Button onClick={handleSubmit} disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Submit Application"}

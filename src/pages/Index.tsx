@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import Seo from "@/components/seo/Seo";
 import FaqSection from "@/components/seo/FaqSection";
-import { CITY_LANDINGS, HOME_FAQS, SITE } from "@/lib/siteConfig";
+import { CANDIDATE_ACCOUNTS_ENABLED, CITY_LANDINGS, HOME_FAQS, SITE } from "@/lib/siteConfig";
 import { faqJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/structuredData";
 
 const formatCount = (value: number) => value.toLocaleString("en-IN");
@@ -114,7 +114,7 @@ const Index = () => {
             
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed font-medium">
               Kutch Business connects job seekers with trusted employers across Kutch, Gujarat. Browse jobs in Bhuj,
-              Gandhidham, Anjar and Mundra, register your candidate profile, or post openings for your organization.
+              Gandhidham, Anjar and Mundra and apply in a minute, or post openings for your organization.
             </p>
 
             {/* Double-Layered Glassmorphic Search Bar */}
@@ -246,11 +246,13 @@ const Index = () => {
                 <span>Looking for a job?</span>
               </h3>
               <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">
-                Build your professional candidate profile, upload your resume, and start applying instantly to positions aligned with your skills and ideals.
+                {CANDIDATE_ACCOUNTS_ENABLED
+                  ? "Build your professional candidate profile, upload your resume, and start applying instantly to positions aligned with your skills and ideals."
+                  : "Browse the latest openings across Kutch and apply directly with just your name and mobile number. No account needed."}
               </p>
-              <Link to="/register" className="inline-block">
+              <Link to={CANDIDATE_ACCOUNTS_ENABLED ? "/register" : "/jobs"} className="inline-block">
                 <Button className="px-6 font-semibold shadow-sm hover:translate-y-[-1px] transition-all duration-200">
-                  Register Candidate Profile
+                  {CANDIDATE_ACCOUNTS_ENABLED ? "Register Candidate Profile" : "Browse & Apply for Jobs"}
                 </Button>
               </Link>
             </div>

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -34,6 +34,7 @@ import ApplicationsManagement from "./pages/admin/ApplicationsManagement";
 import NotificationsSystem from "./pages/admin/NotificationsSystem";
 import SystemSettings from "./pages/admin/SystemSettings";
 import NotFound from "./pages/NotFound";
+import { CANDIDATE_ACCOUNTS_ENABLED } from "@/lib/siteConfig";
 
 const queryClient = new QueryClient();
 
@@ -50,13 +51,23 @@ const App = () => {
             <Route path="/jobs" element={<Jobs />} />
             <Route path="/jobs/:id" element={<JobDetail />} />
             <Route path="/jobs-in/:city" element={<CityJobs />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+            {CANDIDATE_ACCOUNTS_ENABLED ? (
+              <>
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+              </>
+            ) : (
+              // Hidden for now: old links and bookmarks go to the home page.
+              ["/register", "/login", "/reset-password"].map((path) => (
+                <Route key={path} path={path} element={<Navigate to="/" replace />} />
+              ))
+            )}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/post-job" element={<PostJob />} />
 
-            <Route element={<RequireCandidateAuth />}>
+            {!CANDIDATE_ACCOUNTS_ENABLED && <Route path="/dashboard/*" element={<Navigate to="/" replace />} />}
+            {CANDIDATE_ACCOUNTS_ENABLED && <Route element={<RequireCandidateAuth />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/jobs" element={<DashboardJobs />} />
               <Route path="/dashboard/applications" element={<DashboardApplications />} />
@@ -66,7 +77,7 @@ const App = () => {
               <Route path="/dashboard/experience" element={<DashboardExperience />} />
               <Route path="/dashboard/resume" element={<DashboardResume />} />
               <Route path="/dashboard/references" element={<DashboardReferences />} />
-            </Route>
+            </Route>}
 
             <Route element={<RequireAdminAuth />}>
               <Route path="/admin" element={<AdminLayout />}>

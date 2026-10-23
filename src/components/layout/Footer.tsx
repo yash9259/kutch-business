@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { CANDIDATE_ACCOUNTS_ENABLED } from "@/lib/siteConfig";
 import { Facebook, Instagram, Linkedin } from "lucide-react";
 
 const Footer = () => (
@@ -22,8 +23,12 @@ const Footer = () => (
           <h4 className="text-sm font-semibold text-foreground mb-3">For Candidates</h4>
           <ul className="space-y-2">
             <li><Link to="/jobs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Browse Jobs</Link></li>
+            {CANDIDATE_ACCOUNTS_ENABLED && (
+              <>
             <li><Link to="/register" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Register</Link></li>
             <li><Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Login</Link></li>
+              </>
+            )}
           </ul>
         </div>
         <div>

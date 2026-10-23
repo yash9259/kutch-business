@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import ApplyDialog, { type ApplyTarget } from "@/components/jobs/ApplyDialog";
 import { useAuth } from "@/hooks/use-auth";
 import { applyToJob } from "@/lib/candidateDashboard";
+import { CANDIDATE_ACCOUNTS_ENABLED } from "@/lib/siteConfig";
 
 // Public apply flow used by Home, Jobs, City pages and Job detail.
 // Logged-in candidates apply in one tap (their active resume is attached).
@@ -12,7 +13,7 @@ export const useJobApply = () => {
   const [target, setTarget] = useState<ApplyTarget | null>(null);
 
   const startApply = async (job: ApplyTarget) => {
-    if (user?.id && user.role === "candidate") {
+    if (CANDIDATE_ACCOUNTS_ENABLED && user?.id && user.role === "candidate") {
       try {
         await applyToJob(user.id, job.id);
         toast.success("Application submitted!");
