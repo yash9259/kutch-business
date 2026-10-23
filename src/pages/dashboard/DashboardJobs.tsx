@@ -8,11 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { usePaymentSystem } from "@/hooks/use-payment-system";
 import { useNavigate } from "react-router-dom";
 import {
   applyToJob,
-  checkCandidatePaymentVerified,
   getCandidateJobActivity,
   listResumes,
   listApprovedJobs,
@@ -36,7 +34,6 @@ const ITEMS_PER_PAGE = 5;
 const DashboardJobs = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isEnabled: isPaymentEnabled } = usePaymentSystem();
   const [keyword, setKeyword] = useState("");
   const [city, setCity] = useState("All Cities");
   const [experience, setExperience] = useState("Any Experience");
@@ -90,15 +87,6 @@ const DashboardJobs = () => {
     if (!user?.id) {
       navigate("/login");
       return;
-    }
-
-    if (isPaymentEnabled) {
-      const hasPaid = await checkCandidatePaymentVerified(user.id);
-      if (!hasPaid) {
-        toast.error("Please complete payment to apply for jobs.");
-        navigate("/dashboard/payment");
-        return;
-      }
     }
 
     setSelectedJobId(jobId);

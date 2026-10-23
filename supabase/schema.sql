@@ -242,7 +242,7 @@ create table if not exists public.job_posts (
   attachment_file_path text,
   attachment_mime_type text,
   attachment_size_bytes bigint,
-  status public.job_status not null default 'pending',
+  status public.job_status not null default 'approved',
   approved_by uuid references public.profiles(id) on delete set null,
   approved_at timestamptz,
   rejected_reason text,
@@ -265,7 +265,14 @@ create table if not exists public.saved_jobs (
 
 create table if not exists public.job_applications (
   id uuid primary key default gen_random_uuid(),
-  candidate_id uuid not null references public.candidate_profiles(user_id) on delete cascade,
+  candidate_id uuid references public.candidate_profiles(user_id) on delete cascade,
+  applicant_name text,
+  applicant_phone text,
+  applicant_email text,
+  applicant_city text,
+  applicant_message text,
+  applicant_resume_path text,
+  applicant_resume_name text,
   job_id uuid not null references public.job_posts(id) on delete cascade,
   resume_document_id uuid references public.candidate_documents(id) on delete set null,
   status public.application_status not null default 'applied',
@@ -274,8 +281,16 @@ create table if not exists public.job_applications (
   interview_at timestamptz,
   rejected_at timestamptz,
   notes text,
-  unique(candidate_id, job_id)
+  unique(candidate_id, job_id),
+  constraint job_applications_applicant_check check (
+    candidate_id is not null
+    or (char_length(trim(coalesce(applicant_name, ''))) >= 2 and applicant_phone ~ '^[0-9]{10}$')
+  )
 );
+
+create unique index if not exists uq_job_applications_guest_phone
+  on public.job_applications(job_id, applicant_phone)
+  where candidate_id is null;
 
 create index if not exists idx_job_applications_candidate on public.job_applications(candidate_id);
 create index if not exists idx_job_applications_job on public.job_applications(job_id);
@@ -500,20 +515,7 @@ using (public.is_admin(auth.uid()) or auth.uid() = created_by);
 
 create policy "job_posts_insert_anon" on public.job_posts
 for insert to anon
-with check (
-  created_by is null 
-  and (
-    status = 'pending'
-    or (
-      status = 'approved'
-      and exists (
-        select 1 from public.site_settings 
-        where setting_key = 'job_approval_config' 
-        and (setting_value->>'required')::boolean = false
-      )
-    )
-  )
-);
+with check (created_by is null and status = 'approved');
 
 create policy "job_posts_insert_authenticated" on public.job_posts
 for insert to authenticated
@@ -539,6 +541,13 @@ for select using (auth.uid() = candidate_id or public.is_admin(auth.uid()));
 
 create policy "job_applications_insert_self" on public.job_applications
 for insert with check (auth.uid() = candidate_id);
+
+create policy "job_applications_insert_public" on public.job_applications
+for insert to anon, authenticated
+with check (
+  candidate_id is null
+  and exists (select 1 from public.job_posts jp where jp.id = job_id and jp.status = 'approved')
+);
 
 create policy "job_applications_update_self_or_admin" on public.job_applications
 for update using (auth.uid() = candidate_id or public.is_admin(auth.uid()));
@@ -764,3 +773,26 @@ grant usage, select on sequences to authenticated, anon;
 
 alter default privileges in schema public
 grant execute on functions to authenticated, anon;
+
+-- Resumes from people who apply without logging in
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'application-resumes', 'application-resumes', false, 5242880,
+  array['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+)
+on conflict (id) do nothing;
+
+drop policy if exists "application resume upload public" on storage.objects;
+create policy "application resume upload public" on storage.objects
+for insert to anon, authenticated
+with check (bucket_id = 'application-resumes' and (storage.foldername(name))[1] = 'guest');
+
+drop policy if exists "application resume read admin" on storage.objects;
+create policy "application resume read admin" on storage.objects
+for select to authenticated
+using (bucket_id = 'application-resumes' and public.is_admin(auth.uid()));
+
+drop policy if exists "application resume delete admin" on storage.objects;
+create policy "application resume delete admin" on storage.objects
+for delete to authenticated
+using (bucket_id = 'application-resumes' and public.is_admin(auth.uid()));

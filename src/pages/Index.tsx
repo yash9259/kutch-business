@@ -8,6 +8,7 @@ import Layout from "@/components/layout/Layout";
 import JobCard from "@/components/jobs/JobCard";
 import type { Job } from "@/lib/mockData";
 import { listRecentApprovedJobs } from "@/lib/candidateDashboard";
+import { useJobApply } from "@/hooks/use-job-apply";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +21,7 @@ const formatCount = (value: number) => value.toLocaleString("en-IN");
 
 const Index = () => {
   const navigate = useNavigate();
+  const { startApply, applyDialog } = useJobApply();
   const [approvedJobs, setApprovedJobs] = useState<Job[]>([]);
   const [approvedJobsCount, setApprovedJobsCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -224,8 +226,7 @@ const Index = () => {
               <JobCard
                 key={job.id}
                 job={job}
-                onApply={() => navigate("/login")}
-                onSave={() => toast.info("Please login to save jobs")}
+                onApply={() => startApply({ id: job.id, position: job.position, companyName: job.companyName })}
               />
             ))
           )}
@@ -261,7 +262,7 @@ const Index = () => {
                 <span>Hiring for your organization?</span>
               </h3>
               <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">
-                Submit a job posting in less than 2 minutes. No mandatory account setup required. Our moderation team reviews and publishes listings quickly.
+                Submit a job posting in less than 2 minutes. No account needed. Your listing goes live as soon as you submit it.
               </p>
               <Link to="/post-job" className="inline-block">
                 <Button variant="outline" className="px-6 font-semibold border-border hover:bg-surface transition-all duration-200">
@@ -290,6 +291,7 @@ const Index = () => {
       </section>
 
       <FaqSection faqs={HOME_FAQS} />
+      {applyDialog}
     </Layout>
   );
 };

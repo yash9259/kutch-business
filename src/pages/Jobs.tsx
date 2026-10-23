@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import JobCard from "@/components/jobs/JobCard";
 import JobFilters from "@/components/jobs/JobFilters";
@@ -9,9 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Briefcase, Filter } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/use-auth";
-import { usePaymentSystem } from "@/hooks/use-payment-system";
-import { checkCandidatePaymentVerified } from "@/lib/candidateDashboard";
+import { useJobApply } from "@/hooks/use-job-apply";
 import Seo from "@/components/seo/Seo";
 import FaqSection from "@/components/seo/FaqSection";
 import { JOBS_FAQS } from "@/lib/siteConfig";
@@ -20,10 +18,8 @@ import { breadcrumbJsonLd, faqJsonLd, jobListJsonLd } from "@/lib/structuredData
 const ITEMS_PER_PAGE = 5;
 
 const Jobs = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { isEnabled: isPaymentEnabled } = usePaymentSystem();
-  
+  const { startApply, applyDialog } = useJobApply();
+
   const [searchParams] = useSearchParams();
   const keywordParam = searchParams.get("keyword") || "";
 
@@ -57,29 +53,6 @@ const Jobs = () => {
 
   const totalPages = Math.ceil(jobs.length / ITEMS_PER_PAGE);
   const paginated = jobs.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-
-  const handleApply = async () => {
-    if (!user?.id) {
-      navigate("/login");
-      return;
-    }
-
-    if (user.role !== "candidate") {
-      toast.error("Only candidates can apply for jobs.");
-      return;
-    }
-
-    if (isPaymentEnabled) {
-      const hasPaid = await checkCandidatePaymentVerified(user.id);
-      if (!hasPaid) {
-        toast.error("Please complete payment to apply for jobs.");
-        navigate("/dashboard/payment");
-        return;
-      }
-    }
-
-    navigate("/dashboard/jobs");
-  };
 
   return (
     <Layout>
@@ -160,8 +133,7 @@ const Jobs = () => {
                 <JobCard
                   key={job.id}
                   job={job}
-                  onApply={handleApply}
-                  onSave={() => toast.info("Please login to save jobs")}
+                  onApply={() => startApply({ id: job.id, position: job.position, companyName: job.companyName })}
                 />
               ))
             )}
@@ -196,6 +168,7 @@ const Jobs = () => {
         )}
       </div>
       <FaqSection faqs={JOBS_FAQS} />
+      {applyDialog}
     </Layout>
   );
 };

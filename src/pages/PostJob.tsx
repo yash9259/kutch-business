@@ -15,14 +15,12 @@ import {
 import { toast } from "sonner";
 import { CheckCircle2, Building2, Briefcase, MapPin, Phone, FileText } from "lucide-react";
 import { submitEmployerJob } from "@/lib/employerJobs";
-import { useJobApprovalConfig } from "@/hooks/use-job-approval-config";
 import Seo from "@/components/seo/Seo";
 import FaqSection from "@/components/seo/FaqSection";
 import { POST_JOB_FAQS } from "@/lib/siteConfig";
 import { breadcrumbJsonLd, faqJsonLd } from "@/lib/structuredData";
 
 const PostJob = () => {
-  const { required: isApprovalRequired } = useJobApprovalConfig();
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [whatsapp, setWhatsapp] = useState<{ sent: boolean; link: string } | null>(null);
@@ -112,15 +110,9 @@ const PostJob = () => {
         window.open(result.whatsappLink, "_blank", "noopener,noreferrer");
       }
       if (result.emailSent) {
-        toast.success(isApprovalRequired
-          ? "Job submitted! Confirmation email sent to " + form.companyEmail
-          : "Job published! Confirmation email sent to " + form.companyEmail
-        );
+        toast.success("Job published! Confirmation email sent to " + form.companyEmail);
       } else {
-        toast.success(isApprovalRequired
-          ? "Job submitted and saved."
-          : "Job published and live."
-        );
+        toast.success("Job published and live.");
         if (result.emailError) {
           toast.warning("Email not sent: " + result.emailError);
         }
@@ -143,12 +135,10 @@ const PostJob = () => {
           >
             <CheckCircle2 className="h-14 w-14 text-primary mx-auto mb-4" />
             <h1 className="text-xl font-bold text-foreground mb-2">
-              {isApprovalRequired ? "Submission Received" : "Job Posted Successfully!"}
+              Job Posted Successfully!
             </h1>
             <p className="text-sm text-muted-foreground mb-6">
-              {isApprovalRequired 
-                ? "Your job listing has been submitted for admin review, saved in the database, and added to the admin notification queue."
-                : "Your job listing has been successfully published and is now live on our platform for all candidates to see."}
+              Your job listing has been published and is now live for all candidates to see.
             </p>
             {whatsapp && !whatsapp.sent && (
               <div className="mb-4">

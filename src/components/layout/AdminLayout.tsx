@@ -9,7 +9,6 @@ import {
   FileSearch,
   Users,
   FileCheck2,
-  CreditCard,
   Bell,
   Settings,
   LogOut,
@@ -22,7 +21,6 @@ const links = [
   { to: "/admin/job-review", label: "Job Review", icon: FileSearch },
   { to: "/admin/candidates", label: "Candidates", icon: Users },
   { to: "/admin/applications", label: "Applications", icon: FileCheck2 },
-  { to: "/admin/payments", label: "Payments", icon: CreditCard },
   { to: "/admin/notifications", label: "Notifications", icon: Bell },
   { to: "/admin/settings", label: "System Settings", icon: Settings },
 ];
@@ -31,7 +29,7 @@ const primaryMobileLinks = [
   links[0],
   links[1],
   links[3],
-  links[5],
+  links[4],
 ];
 const moreMobileLinks = links.filter(
   (link) => !primaryMobileLinks.some((primaryLink) => primaryLink.to === link.to),

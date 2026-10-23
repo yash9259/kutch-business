@@ -60,15 +60,15 @@ export const HOME_FAQS: FaqItem[] = [
   },
   {
     q: "How do I find a job in Kutch on this website?",
-    a: "Open the Browse Jobs page, search by job title or filter by city, then open a listing to see the salary, timings, qualification, vacancy and interview contact. Register as a candidate to apply and track your applications.",
+    a: "Open the Browse Jobs page, search by job title or filter by city, then open a listing to see the salary, timings, qualification, vacancy and interview contact. You can apply directly with just your name and mobile number, no account needed. Registering is optional and lets you track your applications.",
   },
   {
     q: "How can an employer post a job?",
-    a: "Go to the Post a Job page, fill in the company name, position, vacancies, gender preference, experience, qualification, salary, job timings, location, interview contact and responsibilities, then submit. Our team is notified instantly, and your listing is published after a quick review.",
+    a: "Go to the Post a Job page, fill in the company name, position, vacancies, gender preference, experience, qualification, salary, job timings, location, interview contact and responsibilities, then submit. Your listing goes live immediately and our team is notified instantly.",
   },
   {
     q: "How long does it take for a posted job to appear?",
-    a: "New listings may be reviewed by our team before they are published, which is usually quick. You receive a confirmation email on the company email address you provide.",
+    a: "Immediately. Listings are published as soon as you submit them. You receive a confirmation email on the company email address you provide.",
   },
   {
     q: "Which cities in Kutch do you cover?",
@@ -95,7 +95,7 @@ export const JOBS_FAQS: FaqItem[] = [
   HOME_FAQS[4],
   {
     q: "Do I need an account to view jobs?",
-    a: "No. Anyone can browse and read job listings. You need to register as a candidate only when you want to apply or save jobs.",
+    a: "No. Anyone can browse job listings and apply directly with just a name and mobile number. Registering as a candidate is optional and only needed if you want to save jobs or track your applications.",
   },
   HOME_FAQS[5],
 ];

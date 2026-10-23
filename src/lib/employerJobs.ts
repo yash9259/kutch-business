@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase";
-import { getJobApprovalConfig } from "@/lib/settings";
 import { buildJobWhatsAppText, buildWhatsAppLink } from "@/lib/whatsapp";
 
 export interface EmployerJobSubmissionInput {
@@ -102,8 +101,8 @@ export const submitEmployerJob = async (
   const salaryMax = parseSalary(input.salaryMax);
   const jobTimeText = `${input.jobTime.trim()} - ${input.jobTimingDetails.trim()}`;
 
-  const config = await getJobApprovalConfig();
-  const initialStatus = config.required ? "pending" : "approved";
+  // Jobs go live immediately. No admin approval step.
+  const initialStatus = "approved" as const;
 
   const { data: jobRow, error: jobError } = await supabase
     .from("job_posts")
@@ -135,16 +134,14 @@ export const submitEmployerJob = async (
   }
 
   const { error: notificationError } = await supabase.from("notifications").insert({
-    title: config.required 
-      ? `New employer job submission: ${jobRow.position}`
-      : `New employer job post (Directly Published): ${jobRow.position}`,
+    title: `New employer job post (Published): ${jobRow.position}`,
     body: [
       `Company: ${jobRow.company_name}`,
       `Position: ${jobRow.position}`,
       `Location: ${jobRow.location}`,
       `Employer Email: ${jobRow.company_email}`,
       `Job ID: ${jobRow.id}`,
-      `Status: ${initialStatus === "approved" ? "Approved (Direct Publish)" : "Pending Admin Review"}`,
+      "Status: Live (Direct Publish)",
     ].join("\n"),
     notification_type: "employer_job_submission",
     created_by: null,
@@ -167,9 +164,9 @@ export const submitEmployerJob = async (
       employerName: input.interviewName.trim() || "Employer",
       jobPosition: input.position.trim(),
       companyName: input.companyName.trim(),
-      emailType: config.required ? "submitted" : "approved",
+      emailType: "approved",
       jobId: jobRow.id,
-      jobLink: config.required ? undefined : `${window.location.origin}/jobs/${jobRow.id}`,
+      jobLink: `${window.location.origin}/jobs/${jobRow.id}`,
       jobDetails: {
         vacancy: input.vacancy || "1",
         gender: input.gender || "Any",
@@ -342,45 +339,6 @@ export const sendCandidateApplicationStatusEmail = async (payload: {
     return await response.json();
   } catch (error) {
     console.error("Candidate status email error:", error);
-    throw error;
-  }
-};
-
-export const sendCandidateInvoiceEmail = async (payload: {
-  candidateId: string;
-  candidateEmail?: string;
-  candidateName: string;
-  invoiceNo: string;
-  paymentId: string;
-  amount: string;
-  planName: string;
-  paidAt: string;
-  status: string;
-}) => {
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-employer-email`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          ...payload,
-          recipientType: "candidate_invoice",
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to send candidate invoice email");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Candidate invoice email error:", error);
     throw error;
   }
 };

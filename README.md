@@ -66,3 +66,11 @@ pre-filled chat above is used.
 
 ## Other setup docs
 `EMAIL_SETUP.md`, `RESEND_SETUP.md` (employer emails), `supabase/README.md`.
+
+## No-login apply, no payments, direct posting
+
+Run `NO_LOGIN_APPLY.sql` once in the Supabase SQL Editor. After that:
+
+- Anyone can apply to a job with just a name and mobile number (resume optional). These applications are stored in `job_applications` with `candidate_id = null`, so admin totals include them.
+- Job posts go live immediately. There is no approval setting.
+- Payments are removed from the app. The payment tables stay in the database untouched.

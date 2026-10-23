@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   LayoutDashboard, Briefcase, FileText, User, GraduationCap,
-  Building2, FileUp, Users, CreditCard, LogOut, Ellipsis, Bookmark,
+  Building2, FileUp, Users, LogOut, Ellipsis, Bookmark,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { usePaymentSystem } from "@/hooks/use-payment-system";
 import { toast } from "sonner";
 import WhatsAppFloat from "./WhatsAppFloat";
 
-const baseSidebarLinks = [
+const sidebarLinks = [
   { to: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { to: "/dashboard/jobs", label: "Browse Jobs", icon: Briefcase },
   { to: "/dashboard/saved-jobs", label: "Saved Jobs", icon: Bookmark },
@@ -22,17 +21,12 @@ const baseSidebarLinks = [
   { to: "/dashboard/experience", label: "Experience", icon: Building2 },
   { to: "/dashboard/resume", label: "Resume Manager", icon: FileUp },
   { to: "/dashboard/references", label: "References", icon: Users },
-  { to: "/dashboard/payment", label: "Premium", icon: CreditCard },
 ];
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { isEnabled: isPaymentEnabled } = usePaymentSystem();
-  const sidebarLinks = isPaymentEnabled
-    ? baseSidebarLinks
-    : baseSidebarLinks.filter((link) => link.to !== "/dashboard/payment");
   const primaryMobileLinks = sidebarLinks.slice(0, 4);
   const moreMobileLinks = sidebarLinks.filter(
     (link) => !primaryMobileLinks.some((primaryLink) => primaryLink.to === link.to),

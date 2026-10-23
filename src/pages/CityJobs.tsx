@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Job } from "@/lib/mockData";
 import { listApprovedJobs } from "@/lib/candidateDashboard";
+import { useJobApply } from "@/hooks/use-job-apply";
 import { CITY_LANDINGS, findCity, type FaqItem } from "@/lib/siteConfig";
 import { breadcrumbJsonLd, faqJsonLd, jobListJsonLd } from "@/lib/structuredData";
 import NotFound from "@/pages/NotFound";
@@ -16,6 +17,7 @@ import NotFound from "@/pages/NotFound";
 const CityJobs = () => {
   const { city: citySlug } = useParams();
   const city = findCity(citySlug);
+  const { startApply, applyDialog } = useJobApply();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -101,7 +103,11 @@ const CityJobs = () => {
         ) : jobs.length ? (
           <div className="space-y-4">
             {jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+              <JobCard
+                key={job.id}
+                job={job}
+                onApply={() => startApply({ id: job.id, position: job.position, companyName: job.companyName })}
+              />
             ))}
           </div>
         ) : (
@@ -131,6 +137,7 @@ const CityJobs = () => {
       </section>
 
       <FaqSection title={`Jobs in ${city.name}: FAQs`} faqs={faqs} />
+      {applyDialog}
     </Layout>
   );
 };

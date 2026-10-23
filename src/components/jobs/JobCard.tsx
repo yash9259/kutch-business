@@ -92,15 +92,17 @@ const JobCard = ({
       
       {showActions && (
         <div className="flex gap-2">
-          <Button
-            variant={isSaved ? "secondary" : "outline"}
-            size="sm"
-            disabled={isSavePending}
-            onClick={() => onSave?.(job.id)}
-            className="h-10 px-4 font-bold rounded-xl border-border bg-card shadow-sm hover:bg-surface active:scale-95 transition-all text-xs shrink-0"
-          >
-            {isSavePending ? "Saving..." : isSaved ? "Saved" : "Save"}
-          </Button>
+          {onSave && (
+            <Button
+              variant={isSaved ? "secondary" : "outline"}
+              size="sm"
+              disabled={isSavePending}
+              onClick={() => onSave(job.id)}
+              className="h-10 px-4 font-bold rounded-xl border-border bg-card shadow-sm hover:bg-surface active:scale-95 transition-all text-xs shrink-0"
+            >
+              {isSavePending ? "Saving..." : isSaved ? "Saved" : "Save"}
+            </Button>
+          )}
           <Button
             size="sm"
             variant={applicationStatus ? "secondary" : "default"}

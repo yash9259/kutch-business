@@ -1,3 +1,4 @@
+-- SUPERSEDED by NO_LOGIN_APPLY.sql: do not re-run this file, it brings back the old approval-only policy.
 -- Fix for anon user permissions on job_posts table
 -- Run this in Supabase SQL Editor
 

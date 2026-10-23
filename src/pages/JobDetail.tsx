@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
 import type { Job } from "@/lib/mockData";
@@ -8,23 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, MapPin, Clock, Briefcase, Users, GraduationCap,
-  Calendar, Bookmark, Share2, Flag, Building2, CheckCircle2, Phone, Sparkles, AlertCircle
+  Calendar, Share2, Flag, Building2, CheckCircle2, Phone, Sparkles, AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import JobCard from "@/components/jobs/JobCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/use-auth";
-import { usePaymentSystem } from "@/hooks/use-payment-system";
-import { checkCandidatePaymentVerified } from "@/lib/candidateDashboard";
-import { useJobApprovalConfig } from "@/hooks/use-job-approval-config";
+import { useJobApply } from "@/hooks/use-job-apply";
 import Seo from "@/components/seo/Seo";
 import { jobPostingJsonLd, breadcrumbJsonLd } from "@/lib/structuredData";
 
 const JobDetail = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { isEnabled: isPaymentEnabled } = usePaymentSystem();
-  const { required: isApprovalRequired } = useJobApprovalConfig();
+  const { startApply, applyDialog } = useJobApply();
   const { id } = useParams();
   const [job, setJob] = useState<Job | null>(null);
   const [allApprovedJobs, setAllApprovedJobs] = useState<Job[]>([]);
@@ -109,28 +103,8 @@ const JobDetail = () => {
     { icon: Calendar, label: "Posted On", value: postedDays === 0 ? "Today" : `${postedDays} day${postedDays !== 1 ? "s" : ""} ago` },
   ];
 
-  const handleApply = async () => {
-    if (!user?.id) {
-      navigate("/login");
-      return;
-    }
-
-    if (user.role !== "candidate") {
-      toast.error("Only candidates can apply for jobs.");
-      return;
-    }
-
-    if (isPaymentEnabled) {
-      const hasPaid = await checkCandidatePaymentVerified(user.id);
-      if (!hasPaid) {
-        toast.error("Please complete payment to apply for jobs.");
-        navigate("/dashboard/payment");
-        return;
-      }
-    }
-
-    navigate("/dashboard/jobs");
-  };
+  const handleApply = () =>
+    startApply({ id: job.id, position: job.position, companyName: job.companyName });
 
   return (
     <Layout>
@@ -210,15 +184,6 @@ const JobDetail = () => {
                     <span>Apply for Job</span>
                   </Button>
                   <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => toast.info("Please login to save")}
-                    className="gap-2 font-bold border-border bg-card shadow-sm hover:bg-surface active:scale-95 transition-all h-12 rounded-xl"
-                  >
-                    <Bookmark className="h-4.5 w-4.5" /> 
-                    <span>Save Job</span>
-                  </Button>
-                  <Button
                     variant="ghost"
                     size="lg"
                     onClick={() => {
@@ -286,72 +251,70 @@ const JobDetail = () => {
               </div>
 
               {/* Employer Contact Details Box */}
-              {!isApprovalRequired && (
-                <div className="pt-6 border-t border-border/60 space-y-4">
-                  <h2 className="text-base font-bold text-foreground tracking-tight">
-                    Employer Contact Details
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Company info */}
+              <div className="pt-6 border-t border-border/60 space-y-4">
+                <h2 className="text-base font-bold text-foreground tracking-tight">
+                  Employer Contact Details
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Company info */}
+                  <div className="flex items-center gap-3.5 bg-surface p-4 rounded-xl border border-border/80 hover:border-primary/20 hover:bg-primary/[0.01] transition-all group/contact shadow-sm">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background border border-border/60 shrink-0 shadow-sm">
+                      <Building2 className="h-5 w-5 text-primary group-hover/contact:scale-105 transition-transform" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-muted-foreground">Company Name</p>
+                      <p className="text-sm font-bold text-foreground truncate">{job.companyName}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Contact name */}
+                  {job.interviewContactName && (
+                    <div className="flex items-center gap-3.5 bg-surface p-4 rounded-xl border border-border/80 hover:border-primary/20 hover:bg-primary/[0.01] transition-all group/contact shadow-sm">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background border border-border/60 shrink-0 shadow-sm">
+                        <Users className="h-5 w-5 text-primary group-hover/contact:scale-105 transition-transform" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-muted-foreground">Contact Person</p>
+                        <p className="text-sm font-bold text-foreground truncate">{job.interviewContactName}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Phone number */}
+                  {job.interviewContact && (
+                    <div className="flex items-center gap-3.5 bg-surface p-4 rounded-xl border border-border/80 hover:border-primary/20 hover:bg-primary/[0.01] transition-all group/contact shadow-sm">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background border border-border/60 shrink-0 shadow-sm">
+                        <Phone className="h-5 w-5 text-primary group-hover/contact:scale-105 transition-transform" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-muted-foreground">Contact Number</p>
+                        <p className="text-sm font-extrabold text-primary font-mono">
+                          <a href={`tel:${job.interviewContact}`} className="hover:underline">
+                            {job.interviewContact}
+                          </a>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Email */}
+                  {job.companyEmail && (
                     <div className="flex items-center gap-3.5 bg-surface p-4 rounded-xl border border-border/80 hover:border-primary/20 hover:bg-primary/[0.01] transition-all group/contact shadow-sm">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background border border-border/60 shrink-0 shadow-sm">
                         <Building2 className="h-5 w-5 text-primary group-hover/contact:scale-105 transition-transform" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold text-muted-foreground">Company Name</p>
-                        <p className="text-sm font-bold text-foreground truncate">{job.companyName}</p>
+                        <p className="text-xs font-semibold text-muted-foreground">Company Email</p>
+                        <p className="text-sm font-extrabold text-primary font-mono truncate">
+                          <a href={`mailto:${job.companyEmail}`} className="hover:underline">
+                            {job.companyEmail}
+                          </a>
+                        </p>
                       </div>
                     </div>
-                    
-                    {/* Contact name */}
-                    {job.interviewContactName && (
-                      <div className="flex items-center gap-3.5 bg-surface p-4 rounded-xl border border-border/80 hover:border-primary/20 hover:bg-primary/[0.01] transition-all group/contact shadow-sm">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background border border-border/60 shrink-0 shadow-sm">
-                          <Users className="h-5 w-5 text-primary group-hover/contact:scale-105 transition-transform" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-muted-foreground">Contact Person</p>
-                          <p className="text-sm font-bold text-foreground truncate">{job.interviewContactName}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Phone number */}
-                    {job.interviewContact && (
-                      <div className="flex items-center gap-3.5 bg-surface p-4 rounded-xl border border-border/80 hover:border-primary/20 hover:bg-primary/[0.01] transition-all group/contact shadow-sm">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background border border-border/60 shrink-0 shadow-sm">
-                          <Phone className="h-5 w-5 text-primary group-hover/contact:scale-105 transition-transform" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-muted-foreground">Contact Number</p>
-                          <p className="text-sm font-extrabold text-primary font-mono">
-                            <a href={`tel:${job.interviewContact}`} className="hover:underline">
-                              {job.interviewContact}
-                            </a>
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Email */}
-                    {job.companyEmail && (
-                      <div className="flex items-center gap-3.5 bg-surface p-4 rounded-xl border border-border/80 hover:border-primary/20 hover:bg-primary/[0.01] transition-all group/contact shadow-sm">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background border border-border/60 shrink-0 shadow-sm">
-                          <Building2 className="h-5 w-5 text-primary group-hover/contact:scale-105 transition-transform" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-muted-foreground">Company Email</p>
-                          <p className="text-sm font-extrabold text-primary font-mono truncate">
-                            <a href={`mailto:${job.companyEmail}`} className="hover:underline">
-                              {job.companyEmail}
-                            </a>
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
 
               {/* Benefits & Perks */}
               {job.benefits.length > 0 && (
@@ -390,8 +353,7 @@ const JobDetail = () => {
                     <JobCard
                       key={j.id}
                       job={j}
-                      onApply={handleApply}
-                      onSave={() => toast.info("Please login to save")}
+                      onApply={() => startApply({ id: j.id, position: j.position, companyName: j.companyName })}
                     />
                   ))}
                 </div>
@@ -462,6 +424,7 @@ const JobDetail = () => {
           </div>
         </div>
       </div>
+      {applyDialog}
     </Layout>
   );
 };

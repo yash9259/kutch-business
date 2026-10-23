@@ -1,3 +1,4 @@
+-- SUPERSEDED by NO_LOGIN_APPLY.sql: do not re-run this file, it brings back the old approval-only policy.
 -- Fix for site_settings public read and job_posts dynamic approval status
 -- Run this in Supabase SQL Editor
 

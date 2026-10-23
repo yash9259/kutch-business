@@ -1,12 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import RequireAdminAuth from "@/components/auth/RequireAdminAuth";
 import RequireCandidateAuth from "@/components/auth/RequireCandidateAuth";
 import { AuthProvider } from "@/hooks/use-auth";
-import { usePaymentSystem } from "@/hooks/use-payment-system";
 import Index from "./pages/Index";
 import Jobs from "./pages/Jobs";
 import JobDetail from "./pages/JobDetail";
@@ -24,7 +23,6 @@ import DashboardEducation from "./pages/dashboard/DashboardEducation";
 import DashboardExperience from "./pages/dashboard/DashboardExperience";
 import DashboardResume from "./pages/dashboard/DashboardResume";
 import DashboardReferences from "./pages/dashboard/DashboardReferences";
-import DashboardPayment from "./pages/dashboard/DashboardPayment";
 import AdminLayout from "./components/layout/AdminLayout";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -33,7 +31,6 @@ import JobReview from "./pages/admin/JobReview";
 import CandidateManagement from "./pages/admin/CandidateManagement";
 import CandidateProfile from "./pages/admin/CandidateProfile";
 import ApplicationsManagement from "./pages/admin/ApplicationsManagement";
-import PaymentsManagement from "./pages/admin/PaymentsManagement";
 import NotificationsSystem from "./pages/admin/NotificationsSystem";
 import SystemSettings from "./pages/admin/SystemSettings";
 import NotFound from "./pages/NotFound";
@@ -41,8 +38,6 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const { isEnabled: isPaymentEnabled } = usePaymentSystem();
-
   return (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -71,10 +66,6 @@ const App = () => {
               <Route path="/dashboard/experience" element={<DashboardExperience />} />
               <Route path="/dashboard/resume" element={<DashboardResume />} />
               <Route path="/dashboard/references" element={<DashboardReferences />} />
-              <Route
-                path="/dashboard/payment"
-                element={isPaymentEnabled ? <DashboardPayment /> : <Navigate to="/dashboard" replace />}
-              />
             </Route>
 
             <Route element={<RequireAdminAuth />}>
@@ -87,7 +78,6 @@ const App = () => {
                 <Route path="candidates/profile" element={<CandidateProfile />} />
                 <Route path="candidates/profile/:candidateId" element={<CandidateProfile />} />
                 <Route path="applications" element={<ApplicationsManagement />} />
-                <Route path="payments" element={<PaymentsManagement />} />
                 <Route path="notifications" element={<NotificationsSystem />} />
                 <Route path="settings" element={<SystemSettings />} />
               </Route>

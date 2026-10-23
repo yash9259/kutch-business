@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase";
 import { sendCandidateApplicationStatusEmail } from "@/lib/employerJobs";
-import { getPaymentSystemEnabled } from "@/lib/paymentSystem";
 import type { CandidateProfile as RegistrationCandidateProfile } from "@/lib/candidateAuth";
 import type { EducationEntry, ExperienceEntry, Job as MockJob } from "@/lib/mockData";
 
@@ -62,17 +61,6 @@ export interface DashboardOverview {
   savedJobs: number;
   interviewCalls: number;
   recentApplications: DashboardApplicationItem[];
-}
-
-export interface PaymentPlan {
-  id: string;
-  name: string;
-  price: string;
-  amount: number;
-  period: string;
-  description: string;
-  features: string[];
-  popular: boolean;
 }
 
 export interface CandidateJobActivity {
@@ -817,14 +805,6 @@ export const applyToJob = async (
   jobId: string,
   resumeDocumentId?: string,
 ) => {
-  const isPaymentEnabled = await getPaymentSystemEnabled();
-  if (isPaymentEnabled) {
-    const hasPaid = await checkCandidatePaymentVerified(candidateId);
-    if (!hasPaid) {
-      throw new Error("Please complete payment to apply for jobs.");
-    }
-  }
-
   let selectedResumeId = resumeDocumentId || null;
 
   if (!selectedResumeId) {
@@ -888,120 +868,88 @@ export const applyToJob = async (
   }
 };
 
-export const listPaymentPlans = async (): Promise<PaymentPlan[]> => {
-  const { data, error } = await supabase
-    .from("subscription_plans")
-    .select("id, slug, name, amount, billing_label, description, features")
-    .eq("is_active", true)
-    .order("amount", { ascending: true });
+export interface GuestApplicationInput {
+  jobId: string;
+  jobPosition: string;
+  companyName: string;
+  name: string;
+  phone: string;
+  email?: string;
+  city?: string;
+  message?: string;
+  resume?: File | null;
+}
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return (data || []).map((plan) => ({
-    id: plan.id,
-    name: plan.name,
-    price: formatMoney(plan.amount) || `₹${plan.amount}`,
-    amount: plan.amount,
-    period: plan.billing_label || "one time",
-    description: plan.description || "",
-    features: plan.features || [],
-    popular: plan.slug === "highlighted-profile",
-  }));
+export const normalizeIndianPhone = (value: string) => {
+  const digits = value.replace(/\D/g, "");
+  return digits.length > 10 ? digits.slice(-10) : digits;
 };
 
-export const submitPaymentProof = async (
-  candidateId: string,
-  planId: string,
-  amount: number,
-  utrNumber: string,
-  screenshot: File,
-) => {
-  const filePath = `${candidateId}/${Date.now()}-${sanitizeFileName(screenshot.name)}`;
-  const { error: uploadError } = await supabase.storage
-    .from("payment-screenshots")
-    .upload(filePath, screenshot, { upsert: false });
+// Apply without an account: name + phone only, resume optional.
+// Stored in the same job_applications table, so admin totals include these too.
+export const applyToJobAsGuest = async (input: GuestApplicationInput) => {
+  const name = input.name.trim();
+  const phone = normalizeIndianPhone(input.phone);
 
-  if (uploadError) {
-    throw new Error(uploadError.message);
+  if (name.length < 2) {
+    throw new Error("Please enter your full name");
+  }
+  if (!/^[0-9]{10}$/.test(phone)) {
+    throw new Error("Please enter a valid 10-digit mobile number");
   }
 
-  const { data: docRow, error: docError } = await supabase
-    .from("candidate_documents")
-    .insert({
-      candidate_id: candidateId,
-      document_type: "payment_screenshot",
-      file_name: screenshot.name,
-      file_path: filePath,
-      mime_type: screenshot.type || null,
-      file_size_bytes: screenshot.size,
-      is_active: false,
-    })
-    .select("id")
-    .single();
+  let resumePath: string | null = null;
+  let resumeName: string | null = null;
 
-  if (docError) {
-    throw new Error(docError.message);
+  if (input.resume) {
+    const randomPart = Math.random().toString(36).slice(2, 8);
+    resumePath = `guest/${Date.now()}-${randomPart}-${sanitizeFileName(input.resume.name)}`;
+    resumeName = input.resume.name;
+
+    const { error: uploadError } = await supabase.storage
+      .from("application-resumes")
+      .upload(resumePath, input.resume, { upsert: false });
+
+    if (uploadError) {
+      throw new Error(`Resume upload failed: ${uploadError.message}`);
+    }
   }
 
-  const { error } = await supabase.from("candidate_payments").insert({
-    candidate_id: candidateId,
-    plan_id: planId,
-    amount,
-    payment_method: "upi",
-    status: "submitted",
-    utr_number: utrNumber,
-    paid_at: new Date().toISOString(),
-    screenshot_file_path: filePath,
-    screenshot_document_id: docRow.id,
-    transaction_reference: utrNumber,
+  const email = input.email?.trim().toLowerCase() || null;
+
+  const { error } = await supabase.from("job_applications").insert({
+    candidate_id: null,
+    job_id: input.jobId,
+    applicant_name: name,
+    applicant_phone: phone,
+    applicant_email: email,
+    applicant_city: input.city?.trim() || null,
+    applicant_message: input.message?.trim() || null,
+    applicant_resume_path: resumePath,
+    applicant_resume_name: resumeName,
   });
 
   if (error) {
+    if (error.code === "23505") {
+      throw new Error("You have already applied for this job with this mobile number");
+    }
     throw new Error(error.message);
   }
-};
 
-export const checkCandidatePaymentVerified = async (candidateId: string): Promise<boolean> => {
-  const { data, error } = await supabase
-    .from("candidate_payments")
-    .select("id")
-    .eq("candidate_id", candidateId)
-    .eq("status", "verified")
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    return false;
+  if (email) {
+    try {
+      await sendCandidateApplicationStatusEmail({
+        candidateEmail: email,
+        candidateName: name,
+        jobPosition: input.jobPosition,
+        companyName: input.companyName,
+        applicationStatus: "applied",
+        jobId: input.jobId,
+      });
+    } catch (emailError) {
+      console.warn("Application confirmation email failed:", emailError);
+    }
   }
-
-  return data !== null;
-};
-
-export const getDefaultPlan = async (): Promise<PaymentPlan | null> => {
-  const { data, error } = await supabase
-    .from("subscription_plans")
-    .select("id, slug, name, amount, billing_label, description, features")
-    .eq("is_active", true)
-    .order("amount", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error || !data) {
-    return null;
-  }
-
-  return {
-    id: data.id,
-    name: data.name,
-    price: formatMoney(data.amount) || `₹${data.amount}`,
-    amount: data.amount,
-    period: data.billing_label || "year",
-    description: data.description || "",
-    features: data.features || [],
-    popular: false,
-  };
 };
 
 export const mapRegistrationProfileToDashboardProfile = (

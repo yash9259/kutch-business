@@ -3,15 +3,14 @@ import StatCard from "@/components/ui/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from "recharts";
-import { Users, Briefcase, Clock3, FileCheck2, CreditCard } from "lucide-react";
+import { Users, Briefcase, FileCheck2, UserCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Stats {
   totalCandidates: number;
   totalJobs: number;
-  pendingJobs: number;
   totalApplications: number;
-  totalPayments: number;
+  directApplications: number;
   jobsByStatus: { status: string; value: number }[];
   applicationByStatus: { status: string; value: number; color: string }[];
 }
@@ -27,12 +26,10 @@ const AdminDashboard = () => {
           { count: totalCandidates },
           { data: jobStatusData },
           { data: appStatusData },
-          { count: totalPayments },
         ] = await Promise.all([
           supabase.from("candidate_profiles").select("*", { count: "exact", head: true }),
           supabase.from("job_posts").select("status"),
-          supabase.from("job_applications").select("status"),
-          supabase.from("candidate_payments").select("*", { count: "exact", head: true }),
+          supabase.from("job_applications").select("status, candidate_id"),
         ]);
 
         const jobs = jobStatusData || [];
@@ -41,12 +38,11 @@ const AdminDashboard = () => {
         setStats({
           totalCandidates: totalCandidates ?? 0,
           totalJobs: jobs.length,
-          pendingJobs: jobs.filter((j) => j.status === "pending").length,
+          // Every application counts, whether the applicant had an account or not.
           totalApplications: apps.length,
-          totalPayments: totalPayments ?? 0,
+          directApplications: apps.filter((a) => !a.candidate_id).length,
           jobsByStatus: [
-            { status: "Pending", value: jobs.filter((j) => j.status === "pending").length },
-            { status: "Approved", value: jobs.filter((j) => j.status === "approved").length },
+            { status: "Live", value: jobs.filter((j) => j.status === "approved").length },
             { status: "Rejected", value: jobs.filter((j) => j.status === "rejected").length },
           ],
           applicationByStatus: [
@@ -73,8 +69,8 @@ const AdminDashboard = () => {
           <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
           <p className="text-sm text-muted-foreground">Platform summary, charts, and critical stats</p>
         </div>
-        <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <Skeleton className="h-[300px] rounded-xl" />
@@ -93,12 +89,11 @@ const AdminDashboard = () => {
         <p className="text-sm text-muted-foreground">Platform summary, charts, and critical stats</p>
       </div>
 
-      <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
-        <StatCard label="Total Candidates" value={s.totalCandidates} icon={Users} />
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <StatCard label="Registered Candidates" value={s.totalCandidates} icon={Users} />
         <StatCard label="Total Jobs" value={s.totalJobs} icon={Briefcase} />
-        <StatCard label="Pending Jobs" value={s.pendingJobs} icon={Clock3} />
-        <StatCard label="Applications" value={s.totalApplications} icon={FileCheck2} />
-        <StatCard label="Payments" value={s.totalPayments} icon={CreditCard} />
+        <StatCard label="Total Applications" value={s.totalApplications} icon={FileCheck2} />
+        <StatCard label="Applied Without Login" value={s.directApplications} icon={UserCheck} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

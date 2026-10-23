@@ -15,11 +15,14 @@ interface AppRow {
   jobId: string;
   candidateName: string;
   candidateEmail: string;
+  candidatePhone: string;
+  isGuest: boolean;
   position: string;
   company: string;
   appliedAt: string;
   status: ApplicationStatus;
   resumePath: string | null;
+  resumeBucket: "candidate-resumes" | "application-resumes";
   resumeName: string;
 }
 
@@ -43,12 +46,12 @@ const ApplicationsManagement = () => {
       try {
         const { data: appRows, error: appError } = await supabase
           .from("job_applications")
-          .select("id, candidate_id, job_id, resume_document_id, status, applied_at")
+          .select("id, candidate_id, job_id, resume_document_id, status, applied_at, applicant_name, applicant_phone, applicant_email, applicant_resume_path, applicant_resume_name")
           .order("applied_at", { ascending: false });
 
         if (appError) throw appError;
 
-        const candidateIds = Array.from(new Set((appRows || []).map((row) => row.candidate_id)));
+        const candidateIds = Array.from(new Set((appRows || []).map((row) => row.candidate_id).filter(Boolean))) as string[];
         const jobIds = Array.from(new Set((appRows || []).map((row) => row.job_id)));
         const resumeIds = Array.from(
           new Set((appRows || []).map((row) => row.resume_document_id).filter(Boolean)),
@@ -77,21 +80,46 @@ const ApplicationsManagement = () => {
         const resumeById = new Map((resumes || []).map((row) => [row.id, row]));
 
         const mappedApplications: AppRow[] = (appRows || [])
-            .filter((row) => (roleById.get(row.candidate_id) || "candidate") === "candidate")
-            .map((row) => {
+          // Applications without an account (candidate_id is null) are always included.
+          .filter((row) => !row.candidate_id || (roleById.get(row.candidate_id) || "candidate") === "candidate")
+          .map((row) => {
             const job = jobById.get(row.job_id);
+            const isGuest = !row.candidate_id;
+
+            if (isGuest) {
+              return {
+                id: row.id,
+                candidateId: "",
+                jobId: row.job_id,
+                candidateName: row.applicant_name || "Unknown",
+                candidateEmail: row.applicant_email || "",
+                candidatePhone: row.applicant_phone || "",
+                isGuest: true,
+                position: job?.position || "-",
+                company: job?.company_name || "-",
+                appliedAt: row.applied_at ? new Date(row.applied_at).toLocaleDateString("en-IN") : "-",
+                status: (row.status || "applied") as ApplicationStatus,
+                resumePath: row.applicant_resume_path || null,
+                resumeBucket: "application-resumes" as const,
+                resumeName: row.applicant_resume_name || "Resume not attached",
+              };
+            }
+
             const resume = row.resume_document_id ? resumeById.get(row.resume_document_id) : null;
             return {
               id: row.id,
-              candidateId: row.candidate_id,
+              candidateId: row.candidate_id as string,
               jobId: row.job_id,
-              candidateName: profileById.get(row.candidate_id) || "Unknown",
-              candidateEmail: emailById.get(row.candidate_id) || "",
+              candidateName: profileById.get(row.candidate_id as string) || "Unknown",
+              candidateEmail: emailById.get(row.candidate_id as string) || "",
+              candidatePhone: "",
+              isGuest: false,
               position: job?.position || "-",
               company: job?.company_name || "-",
               appliedAt: row.applied_at ? new Date(row.applied_at).toLocaleDateString("en-IN") : "-",
               status: (row.status || "applied") as ApplicationStatus,
               resumePath: resume?.file_path || null,
+              resumeBucket: "candidate-resumes" as const,
               resumeName: resume?.file_name || "Resume not attached",
             };
           });
@@ -118,6 +146,7 @@ const ApplicationsManagement = () => {
     const keywordMatch =
       !normalizedKeyword ||
       item.candidateName.toLowerCase().includes(normalizedKeyword) ||
+      item.candidatePhone.includes(normalizedKeyword) ||
       item.position.toLowerCase().includes(normalizedKeyword) ||
       item.company.toLowerCase().includes(normalizedKeyword);
     const statusMatch = statusFilter === "all" || item.status === statusFilter;
@@ -133,7 +162,7 @@ const ApplicationsManagement = () => {
     setDownloadingId(application.id);
     try {
       const { data, error } = await supabase.storage
-        .from("candidate-resumes")
+        .from(application.resumeBucket)
         .createSignedUrl(application.resumePath, 60);
       if (error || !data?.signedUrl) {
         throw new Error("Failed to create resume link");
@@ -216,12 +245,14 @@ const ApplicationsManagement = () => {
     <section className="space-y-6">
       <div>
         <h1 className="text-xl sm:text-2xl font-bold">Applications Management</h1>
-        <p className="text-sm text-muted-foreground">Track candidate, job, date, and application status</p>
+        <p className="text-sm text-muted-foreground">
+          {applications.length} total applications ({applications.filter((a) => a.isGuest).length} without login, {applications.filter((a) => !a.isGuest).length} from registered candidates)
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Input
-          placeholder="Search candidate, position, company"
+          placeholder="Search name, phone, position, company"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           className="sm:col-span-2"
@@ -248,7 +279,13 @@ const ApplicationsManagement = () => {
           <div className="sm:hidden space-y-3">
             {filteredApplications.map((item) => (
               <div key={item.id} className="rounded-xl border border-border bg-card p-4 space-y-2">
-                <p className="text-sm font-semibold text-foreground">{item.candidateName}</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {item.candidateName}
+                  {item.isGuest && <Badge variant="outline" className="ml-2 text-[10px]">No login</Badge>}
+                </p>
+                {item.candidatePhone && (
+                  <a href={`tel:${item.candidatePhone}`} className="text-xs text-primary hover:underline">{item.candidatePhone}</a>
+                )}
                 <p className="text-xs text-muted-foreground">{item.position} • {item.company}</p>
                 <p className="text-xs text-muted-foreground">Applied: {item.appliedAt}</p>
                 <div className="flex items-center gap-2">
@@ -304,7 +341,13 @@ const ApplicationsManagement = () => {
               <tbody>
                 {filteredApplications.map((item) => (
                   <tr key={item.id} className="border-b border-border last:border-b-0">
-                    <td className="p-3 text-sm font-medium">{item.candidateName}</td>
+                    <td className="p-3 text-sm font-medium">
+                      {item.candidateName}
+                      {item.isGuest && <Badge variant="outline" className="ml-2 text-[10px]">No login</Badge>}
+                      {item.candidatePhone && (
+                        <a href={`tel:${item.candidatePhone}`} className="block text-xs font-normal text-primary hover:underline">{item.candidatePhone}</a>
+                      )}
+                    </td>
                     <td className="p-3 text-sm text-muted-foreground">{item.position}</td>
                     <td className="p-3 text-sm text-muted-foreground">{item.company}</td>
                     <td className="p-3 text-sm text-muted-foreground">{item.appliedAt}</td>
