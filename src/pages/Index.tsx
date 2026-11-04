@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, Briefcase, Building2, ArrowRight, Compass, Sparkles, Star } from "lucide-react";
+import { Search, Briefcase, ArrowRight, Compass, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Layout from "@/components/layout/Layout";
@@ -27,27 +27,22 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [stats, setStats] = useState([
     { label: "Active Opportunities", value: "0", icon: Briefcase, color: "from-primary to-red-500", glow: "shadow-primary/10" },
-    { label: "Partner Companies", value: "0", icon: Building2, color: "from-orange-500 to-amber-500", glow: "shadow-orange-500/10" },
   ]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
 
   useEffect(() => {
     const loadHomepageData = async () => {
       try {
-        const [recentJobs, { count: candidateCount }, { count: approvedJobsTotal }, { data: companyRows }] = await Promise.all([
+        const [recentJobs, { count: candidateCount }, { count: approvedJobsTotal }] = await Promise.all([
           listRecentApprovedJobs(4),
           supabase.from("candidate_profiles").select("user_id", { count: "exact", head: true }),
           supabase.from("job_posts").select("id", { count: "exact", head: true }).eq("status", "approved"),
-          supabase.from("job_posts").select("company_name").eq("status", "approved"),
         ]);
 
         setApprovedJobs(recentJobs);
         setApprovedJobsCount(approvedJobsTotal || 0);
-        const uniqueCompanies = new Set((companyRows || []).map((row) => row.company_name).filter(Boolean));
-
         setStats([
           { label: "Active Opportunities", value: formatCount(approvedJobsTotal || 0), icon: Briefcase, color: "from-primary to-red-500", glow: "shadow-primary/10" },
-          { label: "Partner Companies", value: formatCount(uniqueCompanies.size), icon: Building2, color: "from-orange-500 to-amber-500", glow: "shadow-orange-500/10" },
         ]);
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Failed to load homepage data");
@@ -162,7 +157,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="mt-16 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-lg mx-auto"
+            className="mt-16 grid grid-cols-1 gap-6 max-w-xs mx-auto"
           >
             {stats.map((s) => (
               <div
@@ -185,6 +180,49 @@ const Index = () => {
               </div>
             ))}
           </motion.div>
+        </div>
+      </section>
+
+      {/* Dynamic CTA Cards Section */}
+      <section className="bg-surface border-t border-border/80 py-20 sm:py-28 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[180px] pointer-events-none" />
+
+        <div className="container">
+          <div className="grid sm:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Candidate CTA Card */}
+            <div className="bg-card border border-border/85 rounded-2xl shadow-card p-8 sm:p-10 relative overflow-hidden group hover:shadow-card-hover hover:border-primary/20 transition-all duration-300">
+              <div className="absolute top-0 right-0 h-28 w-28 bg-primary/5 rounded-full blur-2xl transform translate-x-4 -translate-y-4 group-hover:bg-primary/10 transition-colors pointer-events-none" />
+              <h3 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
+                <span>Looking for a job?</span>
+              </h3>
+              <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">
+                {CANDIDATE_ACCOUNTS_ENABLED
+                  ? "Build your professional candidate profile, upload your resume, and start applying instantly to positions aligned with your skills and ideals."
+                  : "Browse the latest openings across Kutch and apply directly with just your name and mobile number. No account needed."}
+              </p>
+              <Link to={CANDIDATE_ACCOUNTS_ENABLED ? "/register" : "/jobs"} className="inline-block">
+                <Button className="px-6 font-semibold shadow-sm hover:translate-y-[-1px] transition-all duration-200">
+                  {CANDIDATE_ACCOUNTS_ENABLED ? "Register Candidate Profile" : "Browse & Apply for Jobs"}
+                </Button>
+              </Link>
+            </div>
+
+            {/* Employer CTA Card */}
+            <div className="bg-card border border-border/85 rounded-2xl shadow-card p-8 sm:p-10 relative overflow-hidden group hover:shadow-card-hover hover:border-primary/20 transition-all duration-300">
+              <div className="absolute top-0 right-0 h-28 w-28 bg-orange-500/5 rounded-full blur-2xl transform translate-x-4 -translate-y-4 group-hover:bg-orange-500/10 transition-colors pointer-events-none" />
+              <h3 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
+                <span>Hiring for your organization?</span>
+              </h3>
+              <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">
+                Submit a job posting in less than 2 minutes. No account needed. Your listing goes live as soon as you submit it.
+              </p>
+              <Link to="/post-job" className="inline-block">
+                <Button variant="outline" className="px-6 font-semibold border-border hover:bg-surface transition-all duration-200">
+                  Post a Job Listing
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -230,49 +268,6 @@ const Index = () => {
               />
             ))
           )}
-        </div>
-      </section>
-
-      {/* Dynamic CTA Cards Section */}
-      <section className="bg-surface border-t border-border/80 py-20 sm:py-28 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[180px] pointer-events-none" />
-
-        <div className="container">
-          <div className="grid sm:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Candidate CTA Card */}
-            <div className="bg-card border border-border/85 rounded-2xl shadow-card p-8 sm:p-10 relative overflow-hidden group hover:shadow-card-hover hover:border-primary/20 transition-all duration-300">
-              <div className="absolute top-0 right-0 h-28 w-28 bg-primary/5 rounded-full blur-2xl transform translate-x-4 -translate-y-4 group-hover:bg-primary/10 transition-colors pointer-events-none" />
-              <h3 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
-                <span>Looking for a job?</span>
-              </h3>
-              <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">
-                {CANDIDATE_ACCOUNTS_ENABLED
-                  ? "Build your professional candidate profile, upload your resume, and start applying instantly to positions aligned with your skills and ideals."
-                  : "Browse the latest openings across Kutch and apply directly with just your name and mobile number. No account needed."}
-              </p>
-              <Link to={CANDIDATE_ACCOUNTS_ENABLED ? "/register" : "/jobs"} className="inline-block">
-                <Button className="px-6 font-semibold shadow-sm hover:translate-y-[-1px] transition-all duration-200">
-                  {CANDIDATE_ACCOUNTS_ENABLED ? "Register Candidate Profile" : "Browse & Apply for Jobs"}
-                </Button>
-              </Link>
-            </div>
-
-            {/* Employer CTA Card */}
-            <div className="bg-card border border-border/85 rounded-2xl shadow-card p-8 sm:p-10 relative overflow-hidden group hover:shadow-card-hover hover:border-primary/20 transition-all duration-300">
-              <div className="absolute top-0 right-0 h-28 w-28 bg-orange-500/5 rounded-full blur-2xl transform translate-x-4 -translate-y-4 group-hover:bg-orange-500/10 transition-colors pointer-events-none" />
-              <h3 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
-                <span>Hiring for your organization?</span>
-              </h3>
-              <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-8">
-                Submit a job posting in less than 2 minutes. No account needed. Your listing goes live as soon as you submit it.
-              </p>
-              <Link to="/post-job" className="inline-block">
-                <Button variant="outline" className="px-6 font-semibold border-border hover:bg-surface transition-all duration-200">
-                  Post a Job Listing
-                </Button>
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
 
